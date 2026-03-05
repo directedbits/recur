@@ -1,0 +1,57 @@
+# Job to append to .github/workflows/release.yml after the existing
+# `release` job. Updates the directedbits/homebrew-tap repo's
+# Formula/recur.rb on every tagged release.
+#
+# Prereq: a GitHub Personal Access Token (or fine-grained PAT) with
+# 'contents: write' permission on directedbits/homebrew-tap, stored
+# as the secret HOMEBREW_TAP_TOKEN in this repo's settings.
+
+  update-homebrew-tap:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: packaging/homebrew
+
+      - uses: actions/checkout@v4
+        with:
+          repository: directedbits/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: tap
+
+      - name: Compute release sha256s
+        id: sums
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          base="https://github.com/${{ github.repository }}/releases/download/${TAG}"
+          for plat in darwin-arm64 darwin-amd64 linux-arm64 linux-amd64; do
+            curl -sSfL -o "${plat}.tar.gz" "${base}/recur-${TAG}-${plat}.tar.gz"
+            sum=$(sha256sum "${plat}.tar.gz" | awk '{print $1}')
+            # Normalize plat (dashes -> underscores) for env var name
+            var="SHA256_$(echo "$plat" | tr 'a-z-' 'A-Z_')"
+            echo "${var}=${sum}" >> "$GITHUB_ENV"
+          done
+
+      - name: Render formula from template
+        env:
+          VERSION: ${{ steps.sums.outputs.version }}
+        run: |
+          mkdir -p tap/Formula
+          envsubst < packaging/homebrew/recur.rb.template > tap/Formula/recur.rb
+
+      - name: Commit and push to tap
+        working-directory: tap
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/recur.rb
+          if git diff --cached --quiet; then
+            echo "No formula changes."
+            exit 0
+          fi
+          git commit -m "recur ${{ steps.sums.outputs.version }}"
+          git push

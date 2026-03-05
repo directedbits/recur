@@ -1,0 +1,29 @@
+baseURL = "https://directedbits.github.io/recur/"
+languageCode = "en-us"
+title = "recur"
+
+[module]
+  [[module.imports]]
+    path = "github.com/colinwilson/lotusdocs"
+  [[module.imports]]
+    path = "github.com/gohugoio/hugo-mod-bootstrap-scss/v5"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+
+[params]
+  description = "Configuration-driven automation daemon with a plugin architecture"
+
+  [params.flexsearch]
+    enabled = true
+
+  [params.docs]
+    pathName = "docs"
+
+  [params.footer]
+    copyright = "MPL 2.0"
+
+  [params.social]
+    github = "directedbits/recur"

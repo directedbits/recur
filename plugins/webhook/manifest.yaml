@@ -1,0 +1,77 @@
+name: webhook
+namespace: core.webhook
+version: "0.1.0"
+description: "HTTP webhook trigger — fires on incoming requests"
+
+triggers:
+  - name: WebhookReceived
+    description: "Fires when an HTTP request matches the configured path and method"
+    options:
+      - name: port
+        type: string
+        description: "Port to listen on"
+      - name: path
+        type: string
+        default: "/"
+        description: "URL path to match (exact match)"
+      - name: method
+        type: string
+        default: "all"
+        description: "HTTP method filter (POST, GET, all, etc.)"
+      - name: max_body_size
+        type: string
+        default: "1048576"
+        description: "Maximum request body size in bytes"
+      - name: secret
+        type: string
+        sensitive: true
+        description: "HMAC-SHA256 shared secret for signature verification (optional)"
+      - name: signature_header
+        type: string
+        default: "X-Hub-Signature-256"
+        description: "Header containing the HMAC signature (default: GitHub-style)"
+      - name: tls_cert
+        type: string
+        description: "Path to TLS certificate file (enables HTTPS)"
+      - name: tls_key
+        type: string
+        description: "Path to TLS private key file (requires tls_cert)"
+      - name: rate_limit
+        type: string
+        default: "0"
+        description: "Maximum requests per second (0 = unlimited). Returns HTTP 429 when exceeded."
+      - name: retry_after
+        type: string
+        default: "1"
+        description: "Value for the Retry-After header in 429 responses (seconds)"
+    context:
+      - name: RequestMethod
+        type: string
+        description: "HTTP method of the request"
+      - name: RequestPath
+        type: string
+        description: "URL path of the request"
+      - name: RequestBody
+        type: string
+        description: "Request body (up to max_body_size bytes)"
+      - name: QueryString
+        type: string
+        description: "Raw query string without leading ?"
+      - name: RemoteAddr
+        type: string
+        description: "Remote address of the client"
+      - name: ContentType
+        type: string
+        description: "Content-Type header value"
+      - name: Headers
+        type: string
+        description: "JSON-encoded map of all request headers"
+      - name: UserAgent
+        type: string
+        description: "User-Agent header value"
+      - name: Referer
+        type: string
+        description: "Referer header value"
+      - name: XForwardedFor
+        type: string
+        description: "X-Forwarded-For header value"

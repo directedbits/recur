@@ -1,0 +1,48 @@
+bin/
+dist/
+
+# Binaries
+/recur
+/recurd
+/calendar
+/devicemonitor
+/docker
+/fileevents
+/mqtt
+/timer
+/webhook
+*.exe
+
+# Plugin binaries built in-place via `go build` (instead of `task build:<name>`
+# which puts them under bin/). Matches plugins/<name>/<name>.
+/plugins/calendar/calendar
+/plugins/devicemonitor/devicemonitor
+/plugins/docker/docker
+/plugins/fileevents/fileevents
+/plugins/mqtt/mqtt
+/plugins/timer/timer
+/plugins/webhook/webhook
+
+# Generated protobuf
+*.pb.go
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files from plugin install/extract
+recur-download-*
+recur-extract-*
+
+# Coverage profiles
+coverage*.out
+
+# Hugo build output
+docs/public/
+docs/resources/

@@ -1,0 +1,139 @@
+version: '3'
+
+vars:
+  BIN_DIR: bin
+  GOEXE:
+    sh: go env GOEXE
+  RECUR_BIN: '{{.BIN_DIR}}/recur{{.GOEXE}}'
+  RECURD_BIN: '{{.BIN_DIR}}/recurd{{.GOEXE}}'
+  GOPATH:
+    sh: go env GOPATH
+
+tasks:
+  build:
+    desc: Build recur and recurd binaries
+    cmds:
+      - go build -o {{.RECUR_BIN}} ./src/app/recur
+      - go build -o {{.RECURD_BIN}} ./src/app/recurd
+
+  build:calendar:
+    desc: Build the calendar plugin
+    cmds:
+      - go build -o {{.BIN_DIR}}/plugins/calendar/calendar{{.GOEXE}} ./plugins/calendar/
+      - cp ./plugins/calendar/manifest.yaml {{.BIN_DIR}}/plugins/calendar/
+
+  build:devicemonitor:
+    desc: Build the devicemonitor plugin
+    cmds:
+      - go build -o {{.BIN_DIR}}/plugins/devicemonitor/devicemonitor{{.GOEXE}} ./plugins/devicemonitor/
+      - cp ./plugins/devicemonitor/manifest.yaml {{.BIN_DIR}}/plugins/devicemonitor/
+
+  build:fileevents:
+    desc: Build the fileevents plugin
+    cmds:
+      - go build -o {{.BIN_DIR}}/plugins/fileevents/fileevents{{.GOEXE}} ./plugins/fileevents/
+      - cp ./plugins/fileevents/manifest.yaml {{.BIN_DIR}}/plugins/fileevents/
+
+  build:docker:
+    desc: Build the docker plugin
+    cmds:
+      - go build -o {{.BIN_DIR}}/plugins/docker/docker{{.GOEXE}} ./plugins/docker/
+      - cp ./plugins/docker/manifest.yaml {{.BIN_DIR}}/plugins/docker/
+
+  build:mqtt:
+    desc: Build the mqtt plugin
+    cmds:
+      - go build -o {{.BIN_DIR}}/plugins/mqtt/mqtt{{.GOEXE}} ./plugins/mqtt/
+      - cp ./plugins/mqtt/manifest.yaml {{.BIN_DIR}}/plugins/mqtt/
+
+  build:timer:
+    desc: Build the timer plugin
+    cmds:
+      - go build -o {{.BIN_DIR}}/plugins/timer/timer{{.GOEXE}} ./plugins/timer/
+      - cp ./plugins/timer/manifest.yaml {{.BIN_DIR}}/plugins/timer/
+
+  build:webhook:
+    desc: Build the webhook plugin
+    cmds:
+      - go build -o {{.BIN_DIR}}/plugins/webhook/webhook{{.GOEXE}} ./plugins/webhook/
+      - cp ./plugins/webhook/manifest.yaml {{.BIN_DIR}}/plugins/webhook/
+
+  build:plugins:
+    desc: Build all plugins
+    cmds:
+      - task: build:calendar
+      - task: build:devicemonitor
+      - task: build:docker
+      - task: build:fileevents
+      - task: build:mqtt
+      - task: build:timer
+      - task: build:webhook
+
+  clean:
+    desc: Remove build artifacts and generated code
+    cmds:
+      - task: clean:{{OS}}
+
+  clean:linux:
+    internal: true
+    cmds:
+      - rm -rf {{.BIN_DIR}}
+      - rm -f src/infra/grpc/v1/*.pb.go
+
+  clean:darwin:
+    internal: true
+    cmds:
+      - task: clean:linux
+
+  clean:windows:
+    internal: true
+    cmds:
+      - cmd /c "if exist {{.BIN_DIR}} rd /s /q {{.BIN_DIR}}"
+      - cmd /c "del /q src\infra\grpc\watch\v1\*.pb.go 2>nul"
+
+  generate:
+    desc: Generate protobuf Go code
+    dir: api
+    cmds:
+      - '{{.GOPATH}}/bin/buf generate'
+
+  lint:
+    desc: Lint protobuf definitions
+    dir: api
+    cmds:
+      - '{{.GOPATH}}/bin/buf lint'
+
+  test:
+    desc: Run unit tests
+    cmds:
+      - go test ./src/...
+
+  test:plugins:
+    desc: Run plugin unit tests
+    cmds:
+      - go test ./plugins/calendar/... ./plugins/devicemonitor/... ./plugins/docker/... ./plugins/fileevents/... ./plugins/mqtt/... ./plugins/timer/... ./plugins/webhook/...
+
+  test:e2e:
+    desc: Run e2e tests
+    cmds:
+      - go test ./test/e2e/ -v
+
+  test:all:
+    desc: Run all tests (unit + e2e + plugins)
+    cmds:
+      - task: test
+      - task: test:plugins
+      - task: test:e2e
+
+  rebuild:
+    desc: Clean, generate, and build from scratch
+    cmds:
+      - task: clean
+      - task: generate
+      - task: build
+
+  default:
+    desc: Build everything (generate + build)
+    cmds:
+      - task: generate
+      - task: build

@@ -1,0 +1,27 @@
+name: Stale Branch Cleanup
+
+on:
+  delete:
+    branches-ignore: [main]
+
+# Auto-delete is handled by GitHub repo settings (Settings > General >
+# "Automatically delete head branches"). This workflow handles branches
+# that were merged outside of PRs or lingered after manual merges.
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Delete merged branches
+        run: |
+          git fetch --prune
+          for branch in $(git branch -r --merged origin/main | grep -v 'main$' | sed 's|origin/||'); do
+            echo "Deleting merged branch: $branch"
+            git push origin --delete "$branch" 2>/dev/null || true
+          done

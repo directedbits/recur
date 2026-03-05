@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go test *)",
+      "Bash(go mod tidy*)",
+      "Bash(go build *)",
+      "Bash(buf lint*)",
+      "Bash(buf generate*)",
+      "Bash(buf --version*)",
+      "Bash(task *)",
+      "Bash(task --*)",
+      "Bash(export PATH=*go*&&*)",
+      "Bash(which *)"
+    ]
+  }
+}

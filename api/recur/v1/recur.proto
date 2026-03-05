@@ -1,0 +1,594 @@
+syntax = "proto3";
+
+package recur.v1;
+
+option go_package = "github.com/directedbits/recur/src/infra/grpc/recur/v1;recurv1";
+
+import "google/protobuf/timestamp.proto";
+
+// RecurService is the gRPC API for the recur daemon.
+service RecurService {
+  // Recurfile operations
+  rpc RegisterRecurfile(RegisterRecurfileRequest) returns (RegisterRecurfileResponse);
+  rpc VerifyRecurfile(VerifyRecurfileRequest) returns (VerifyRecurfileResponse);
+  rpc DeregisterRecurfile(DeregisterRecurfileRequest) returns (DeregisterRecurfileResponse);
+
+  // List operations
+  rpc ListPlugins(ListPluginsRequest) returns (ListPluginsResponse);
+  rpc ListTriggers(ListTriggersRequest) returns (ListTriggersResponse);
+  rpc ListActions(ListActionsRequest) returns (ListActionsResponse);
+  rpc ListGroups(ListGroupsRequest) returns (ListGroupsResponse);
+  rpc ListRecurfiles(ListRecurfilesRequest) returns (ListRecurfilesResponse);
+
+  // Plugin management
+  rpc InstallPlugin(InstallPluginRequest) returns (InstallPluginResponse);
+  rpc UninstallPlugin(UninstallPluginRequest) returns (UninstallPluginResponse);
+
+  // Config operations
+  rpc GetConfig(GetConfigRequest) returns (GetConfigResponse);
+  rpc SetConfig(SetConfigRequest) returns (SetConfigResponse);
+  rpc DeleteConfig(DeleteConfigRequest) returns (DeleteConfigResponse);
+
+  // Daemon status
+  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+
+  // Unified entity operations
+  rpc InspectEntity(InspectEntityRequest) returns (InspectEntityResponse);
+  rpc SuspendEntity(SuspendEntityRequest) returns (SuspendEntityResponse);
+  rpc ResumeEntity(ResumeEntityRequest) returns (ResumeEntityResponse);
+  rpc TestEntity(TestEntityRequest) returns (TestEntityResponse);
+
+  // Plugin callback
+  rpc ReportTriggerEvent(ReportTriggerEventRequest) returns (ReportTriggerEventResponse);
+}
+
+// ---------------------------------------------------------------------------
+// Common types
+// ---------------------------------------------------------------------------
+
+// EntityStatus represents the state of a trigger or action.
+enum EntityStatus {
+  ENTITY_STATUS_UNSPECIFIED = 0;
+  ENTITY_STATUS_ACTIVE = 1;
+  ENTITY_STATUS_SUSPENDED = 2;
+  ENTITY_STATUS_ERROR = 3;
+}
+
+// Filter is a key-value pair used for list filtering.
+// Multiple filters with the same key are OR'd; different keys are AND'd.
+message Filter {
+  string key = 1;
+  string value = 2;
+}
+
+// OptionValue represents a resolved option with its source for inheritance display.
+message OptionValue {
+  string name = 1;
+  string value = 2;   // serialized value
+  string source = 3;  // where the value came from: "default", "group", "trigger", "recurfile"
+}
+
+// ContextVariable describes a template variable a trigger provides.
+message ContextVariable {
+  string name = 1;
+  string type = 2;
+  string description = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Entity summaries (used in list responses)
+// ---------------------------------------------------------------------------
+
+message TriggerSummary {
+  string id = 1;
+  string name = 2;         // trigger type name (e.g. "FileCreated")
+  string group = 3;
+  string plugin = 4;       // plugin namespace
+  EntityStatus status = 5;
+  string recurfile = 6;    // source recurfile path
+  int32 error_count = 7;
+  google.protobuf.Timestamp last_fired = 8;
+}
+
+message ActionSummary {
+  string id = 1;
+  string name = 2;
+  string group = 3;
+  string plugin = 4;
+  EntityStatus status = 5;
+  string recurfile = 6;
+  int32 error_count = 7;
+  google.protobuf.Timestamp last_executed = 8;
+}
+
+message GroupSummary {
+  string id = 1;
+  string name = 2;
+  repeated string recurfiles = 3;
+  int32 trigger_count = 4;
+  int32 action_count = 5;
+}
+
+message PluginSummary {
+  string id = 1;
+  string name = 2;
+  string namespace = 3;
+  string version = 4;
+  EntityStatus status = 5;
+  int32 trigger_count = 6;
+  int32 action_count = 7;
+}
+
+message RecurfileSummary {
+  string id = 1;
+  string path = 2;
+  int32 group_count = 3;
+  int32 trigger_count = 4;
+  int32 action_count = 5;
+}
+
+// ---------------------------------------------------------------------------
+// Entity details (used in inspect responses)
+// ---------------------------------------------------------------------------
+
+message TriggerDetail {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string group = 4;
+  string plugin = 5;
+  EntityStatus status = 6;
+  string recurfile = 7;
+  repeated OptionValue options = 8;
+  repeated ContextVariable context = 9;
+  repeated string action_ids = 10;
+  int32 error_count = 11;
+  int32 error_threshold = 12;
+  string concurrency_mode = 13;
+  string debounce = 14;
+  google.protobuf.Timestamp last_fired = 15;
+}
+
+message ActionDetail {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string group = 4;
+  string plugin = 5;
+  EntityStatus status = 6;
+  string recurfile = 7;
+  repeated OptionValue options = 8;
+  string trigger_id = 9;
+  int32 error_count = 10;
+  int32 error_threshold = 11;
+  repeated int32 allowed_exit_codes = 12;
+  google.protobuf.Timestamp last_executed = 13;
+}
+
+message GroupDetail {
+  string id = 1;
+  string name = 2;
+  repeated string recurfiles = 3;
+  map<string, string> aliases = 4;
+  repeated OptionValue options = 5;
+  repeated TriggerSummary triggers = 6;
+  repeated ActionSummary actions = 7;
+}
+
+message PluginDetail {
+  string id = 1;
+  string name = 2;
+  string namespace = 3;
+  string version = 4;
+  string description = 5;
+  EntityStatus status = 6;
+  repeated string dependencies = 7;
+  repeated ConfigEntry configuration = 8;
+  repeated TriggerSummary triggers = 9;
+  repeated ActionSummary actions = 10;
+}
+
+message RecurfileDetail {
+  string id = 1;
+  string path = 2;
+  repeated GroupSummary groups = 3;
+  repeated TriggerSummary triggers = 4;
+  repeated ActionSummary actions = 5;
+}
+
+// ConfigEntry describes a plugin configuration key.
+message ConfigEntry {
+  string key = 1;
+  string type = 2;
+  string value = 3;          // current effective value (serialized)
+  string default_value = 4;  // default from manifest
+  string description = 5;
+}
+
+// ---------------------------------------------------------------------------
+// Recurfile operations
+// ---------------------------------------------------------------------------
+
+message RegisterRecurfileRequest {
+  string path = 1;
+}
+
+message RegisterRecurfileResponse {
+  string id = 1;
+  string path = 2;
+  int32 trigger_count = 3;
+  int32 action_count = 4;
+  repeated string warnings = 5;
+  bool reloaded = 6;
+}
+
+message VerifyRecurfileRequest {
+  string path = 1;
+}
+
+message VerifyRecurfileResponse {
+  bool valid = 1;
+  repeated string errors = 2;
+  repeated string warnings = 3;
+  int32 trigger_count = 4;
+  int32 action_count = 5;
+}
+
+message DeregisterRecurfileRequest {
+  string identifier = 1;  // UUID, UUID prefix, name, or file path
+}
+
+message DeregisterRecurfileResponse {
+  string id = 1;
+  string path = 2;
+  int32 triggers_removed = 3;
+  int32 actions_removed = 4;
+}
+
+// ---------------------------------------------------------------------------
+// List operations
+// ---------------------------------------------------------------------------
+
+message ListPluginsRequest {
+  repeated Filter filters = 1;
+  bool include_suspended = 2;  // --all flag
+}
+
+message ListPluginsResponse {
+  repeated PluginSummary plugins = 1;
+}
+
+message ListTriggersRequest {
+  repeated Filter filters = 1;
+  bool include_suspended = 2;
+}
+
+message ListTriggersResponse {
+  repeated TriggerSummary triggers = 1;
+}
+
+message ListActionsRequest {
+  repeated Filter filters = 1;
+  bool include_suspended = 2;
+}
+
+message ListActionsResponse {
+  repeated ActionSummary actions = 1;
+}
+
+message ListGroupsRequest {
+  repeated Filter filters = 1;
+}
+
+message ListGroupsResponse {
+  repeated GroupSummary groups = 1;
+}
+
+message ListRecurfilesRequest {
+  repeated Filter filters = 1;
+}
+
+message ListRecurfilesResponse {
+  repeated RecurfileSummary recurfiles = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Inspect operations
+// ---------------------------------------------------------------------------
+
+message InspectTriggerRequest {
+  string identifier = 1;
+}
+
+message InspectTriggerResponse {
+  TriggerDetail trigger = 1;
+}
+
+message InspectActionRequest {
+  string identifier = 1;
+}
+
+message InspectActionResponse {
+  ActionDetail action = 1;
+}
+
+message InspectGroupRequest {
+  string identifier = 1;
+}
+
+message InspectGroupResponse {
+  GroupDetail group = 1;
+}
+
+message InspectPluginRequest {
+  string identifier = 1;
+}
+
+message InspectPluginResponse {
+  PluginDetail plugin = 1;
+}
+
+message InspectRecurfileRequest {
+  string identifier = 1;
+}
+
+message InspectRecurfileResponse {
+  RecurfileDetail recurfile = 1;
+}
+
+// ---------------------------------------------------------------------------
+// Control operations
+// ---------------------------------------------------------------------------
+
+message SuspendTriggerRequest {
+  string identifier = 1;
+}
+
+message SuspendTriggerResponse {
+  string id = 1;
+  string name = 2;
+  bool already_suspended = 3;
+}
+
+message ResumeTriggerRequest {
+  string identifier = 1;
+}
+
+message ResumeTriggerResponse {
+  string id = 1;
+  string name = 2;
+  bool already_active = 3;
+}
+
+message SuspendActionRequest {
+  string identifier = 1;
+}
+
+message SuspendActionResponse {
+  string id = 1;
+  string name = 2;
+  bool already_suspended = 3;
+}
+
+message ResumeActionRequest {
+  string identifier = 1;
+}
+
+message ResumeActionResponse {
+  string id = 1;
+  string name = 2;
+  bool already_active = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Test operations
+// ---------------------------------------------------------------------------
+
+message TestTriggerRequest {
+  string identifier = 1;
+  map<string, string> context = 2;  // --set key=value pairs
+}
+
+message TestTriggerResponse {
+  repeated TestActionResult results = 1;
+  repeated string warnings = 2;  // e.g., missing context variables
+}
+
+message TestActionRequest {
+  string identifier = 1;
+  map<string, string> context = 2;
+}
+
+message TestActionResponse {
+  TestActionResult result = 1;
+  repeated string warnings = 2;
+}
+
+message TestActionResult {
+  string action_id = 1;
+  string action_type = 2;
+  bool success = 3;
+  int32 exit_code = 4;
+  string output = 5;
+  string error = 6;
+  string duration = 7;  // Go duration string
+}
+
+// ---------------------------------------------------------------------------
+// Plugin management
+// ---------------------------------------------------------------------------
+
+message InstallPluginRequest {
+  string path = 1;  // directory or archive path
+}
+
+message InstallPluginResponse {
+  string id = 1;
+  string name = 2;
+  string namespace = 3;
+  string version = 4;
+}
+
+message UninstallPluginRequest {
+  string identifier = 1;
+}
+
+message UninstallPluginResponse {
+  string id = 1;
+  string name = 2;
+  string namespace = 3;
+}
+
+// ---------------------------------------------------------------------------
+// Config operations
+// ---------------------------------------------------------------------------
+
+message GetConfigRequest {
+  string key = 1;  // empty = get all
+}
+
+message GetConfigResponse {
+  // When key is specified, a single entry. When empty, all entries.
+  repeated ConfigKeyValue entries = 1;
+}
+
+message SetConfigRequest {
+  string key = 1;
+  string value = 2;
+}
+
+message SetConfigResponse {}
+
+message DeleteConfigRequest {
+  string key = 1;
+}
+
+message DeleteConfigResponse {}
+
+message ConfigKeyValue {
+  string key = 1;
+  string value = 2;  // serialized value
+}
+
+// ---------------------------------------------------------------------------
+// Daemon status
+// ---------------------------------------------------------------------------
+
+message GetStatusRequest {}
+
+message GetStatusResponse {
+  bool running = 1;
+  int32 pid = 2;
+  string uptime = 3;
+  int32 active_triggers = 4;
+  int32 active_actions = 5;
+  int32 suspended_triggers = 6;
+  int32 suspended_actions = 7;
+  int32 registered_plugins = 8;
+  int32 registered_recurfiles = 9;
+  repeated RecentError recent_errors = 10;
+  string version = 11;
+  LaunchArgs launch_args = 12;
+}
+
+message LaunchArgs {
+  string config_path = 1;
+  string socket_address = 2;
+  string log_level = 3;
+  bool foreground = 4;
+}
+
+message RecentError {
+  google.protobuf.Timestamp timestamp = 1;
+  string entity_type = 2;  // "trigger" or "action"
+  string entity_id = 3;
+  string entity_name = 4;
+  string message = 5;
+}
+
+// ---------------------------------------------------------------------------
+// Unified entity operations
+// ---------------------------------------------------------------------------
+
+// EntityCandidate describes one possible resolution of an ambiguous identifier.
+message EntityCandidate {
+  string entity_type = 1;
+  string id = 2;
+  string name = 3;
+  string group = 4;     // empty for recurfile/plugin entities
+  string recurfile = 5; // empty for plugin entities
+}
+
+// AmbiguousEntity is attached as an error detail when an identifier matches
+// multiple entities and the caller must disambiguate.
+message AmbiguousEntity {
+  string identifier = 1;
+  repeated EntityCandidate candidates = 2;
+}
+
+message InspectEntityRequest {
+  string identifier = 1;
+  string entity_type = 2;  // optional: "trigger", "action", "group", "recurfile", "plugin"
+}
+
+message InspectEntityResponse {
+  string entity_type = 1;
+  TriggerDetail trigger = 2;
+  ActionDetail action = 3;
+  GroupDetail group = 4;
+  RecurfileDetail recurfile = 5;
+  PluginDetail plugin = 6;
+}
+
+message SuspendEntityRequest {
+  string identifier = 1;
+  string entity_type = 2;  // optional: "trigger", "action"
+}
+
+message SuspendEntityResponse {
+  string entity_type = 1;
+  string id = 2;
+  string name = 3;
+  bool already_suspended = 4;
+}
+
+message ResumeEntityRequest {
+  string identifier = 1;
+  string entity_type = 2;  // optional: "trigger", "action"
+}
+
+message ResumeEntityResponse {
+  string entity_type = 1;
+  string id = 2;
+  string name = 3;
+  bool already_active = 4;
+}
+
+message TestEntityRequest {
+  string identifier = 1;
+  string entity_type = 2;  // optional: "trigger", "action"
+  map<string, string> context = 3;
+}
+
+message TestEntityResponse {
+  string entity_type = 1;
+  // For trigger tests: multiple action results
+  repeated TestActionResult results = 2;
+  // For action tests: single result
+  TestActionResult result = 3;
+  repeated string warnings = 4;
+}
+
+// ---------------------------------------------------------------------------
+// Plugin callback
+// ---------------------------------------------------------------------------
+
+message ReportTriggerEventRequest {
+  string trigger_id = 1;
+  map<string, string> context = 2;  // context variables matching manifest declarations
+}
+
+message ReportTriggerEventResponse {
+  bool accepted = 1;
+  string error = 2;
+}
