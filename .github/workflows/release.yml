@@ -112,7 +112,7 @@ jobs:
           cd dist
           tar czf "${{ steps.vars.outputs.artifact }}.tar.gz" "${{ steps.vars.outputs.artifact }}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.vars.outputs.artifact }}
           path: dist/${{ steps.vars.outputs.artifact }}.tar.gz
@@ -131,7 +131,7 @@ jobs:
           git archive --format=tar.gz --prefix="recur-${{ steps.vars.outputs.tag }}/" \
             -o "recur-${{ steps.vars.outputs.tag }}-source.tar.gz" HEAD
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: recur-${{ steps.vars.outputs.tag }}-source
           path: recur-${{ steps.vars.outputs.tag }}-source.tar.gz
