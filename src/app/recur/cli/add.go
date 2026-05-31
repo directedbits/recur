@@ -344,7 +344,7 @@ func autoRegister(cmd *cobra.Command, targetPath string) {
 		fmt.Println("Hint: daemon is not running. Register later with: recur register " + targetPath)
 		return
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	absPath, _ := filepath.Abs(targetPath)
 

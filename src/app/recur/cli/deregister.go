@@ -23,7 +23,7 @@ func newDeregisterCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			var identifier string
 			if len(args) > 0 {

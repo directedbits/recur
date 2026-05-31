@@ -120,7 +120,7 @@ func (c *DockerClient) Events(ctx context.Context, filters map[string][]string) 
 			errCh <- fmt.Errorf("events request: %w", err)
 			return
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		if resp.StatusCode != http.StatusOK {
 			body, _ := io.ReadAll(resp.Body)
@@ -167,7 +167,7 @@ func (c *DockerClient) ContainerStart(ctx context.Context, containerID string) e
 	if err != nil {
 		return fmt.Errorf("start request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// 204 = started, 304 = already started — both are OK.
 	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusNotModified {
@@ -190,7 +190,7 @@ func (c *DockerClient) ContainerStop(ctx context.Context, containerID string, ti
 	if err != nil {
 		return fmt.Errorf("stop request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// 204 = stopped, 304 = already stopped — both are OK.
 	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusNotModified {
@@ -213,7 +213,7 @@ func (c *DockerClient) ContainerRestart(ctx context.Context, containerID string,
 	if err != nil {
 		return fmt.Errorf("restart request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusNoContent {
 		body, _ := io.ReadAll(resp.Body)

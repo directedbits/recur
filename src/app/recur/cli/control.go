@@ -21,7 +21,7 @@ func newSuspendCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			quiet, _ := cmd.Flags().GetBool("quiet")
 			identifier := args[0]
@@ -61,7 +61,7 @@ func newResumeCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			quiet, _ := cmd.Flags().GetBool("quiet")
 			identifier := args[0]
@@ -101,7 +101,7 @@ func newTestCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			identifier := args[0]
 			jsonFlag, _ := cmd.Flags().GetBool("json")
@@ -161,7 +161,7 @@ func newSuspendTriggerCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			_, err = client.Service.SuspendEntity(context.Background(), &recurv1.SuspendEntityRequest{
 				Identifier: args[0],
@@ -190,7 +190,7 @@ func newSuspendActionCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			_, err = client.Service.SuspendEntity(context.Background(), &recurv1.SuspendEntityRequest{
 				Identifier: args[0],
@@ -219,7 +219,7 @@ func newResumeTriggerCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			_, err = client.Service.ResumeEntity(context.Background(), &recurv1.ResumeEntityRequest{
 				Identifier: args[0],
@@ -248,7 +248,7 @@ func newResumeActionCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			_, err = client.Service.ResumeEntity(context.Background(), &recurv1.ResumeEntityRequest{
 				Identifier: args[0],
@@ -277,7 +277,7 @@ func newTestTriggerCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			sets, _ := cmd.Flags().GetStringArray("set")
 			ctx := make(map[string]string)
@@ -323,7 +323,7 @@ func newTestActionCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			sets, _ := cmd.Flags().GetStringArray("set")
 			ctx := make(map[string]string)

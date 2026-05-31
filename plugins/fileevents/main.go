@@ -78,7 +78,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("connecting to daemon: %v", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	broker.Start()
 	defer broker.Stop()

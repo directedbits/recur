@@ -125,7 +125,7 @@ func runTrigger(input *pluginInput) {
 	if err != nil {
 		log.Fatalf("connecting to daemon: %v", err)
 	}
-	defer grpcClient.Close()
+	defer func() { _ = grpcClient.Close() }()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)

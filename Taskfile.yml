@@ -98,6 +98,17 @@ tasks:
       - '{{.GOPATH}}/bin/buf generate'
 
   lint:
+    desc: Run all linters (Go + protobuf)
+    cmds:
+      - task: lint:go
+      - task: lint:proto
+
+  lint:go:
+    desc: Run golangci-lint over the Go module
+    cmds:
+      - '{{.GOPATH}}/bin/golangci-lint run ./src/... ./plugins/calendar/... ./plugins/devicemonitor/... ./plugins/mqtt/... ./plugins/timer/... ./plugins/webhook/...'
+
+  lint:proto:
     desc: Lint protobuf definitions
     dir: api
     cmds:

@@ -22,7 +22,7 @@ When the entity type is omitted, the identifier is searched across all entity ty
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			identifier := resolvePathIdentifier(args[0])
 
@@ -68,7 +68,7 @@ func newInspectTriggerCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			jsonFlag, verbose := inspectFlags(cmd)
 			resp, err := client.Service.InspectEntity(context.Background(), &recurv1.InspectEntityRequest{
@@ -96,7 +96,7 @@ func newInspectActionCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			jsonFlag, verbose := inspectFlags(cmd)
 			resp, err := client.Service.InspectEntity(context.Background(), &recurv1.InspectEntityRequest{
@@ -124,7 +124,7 @@ func newInspectGroupCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			jsonFlag, _ := inspectFlags(cmd)
 			resp, err := client.Service.InspectEntity(context.Background(), &recurv1.InspectEntityRequest{
@@ -152,7 +152,7 @@ func newInspectPluginCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			jsonFlag, verbose := inspectFlags(cmd)
 			resp, err := client.Service.InspectEntity(context.Background(), &recurv1.InspectEntityRequest{
@@ -180,7 +180,7 @@ func newInspectRecurfileCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			jsonFlag, _ := inspectFlags(cmd)
 			identifier := resolvePathIdentifier(args[0])

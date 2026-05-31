@@ -45,7 +45,7 @@ func newListTriggersCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			resp, err := client.Service.ListTriggers(context.Background(), &recurv1.ListTriggersRequest{})
 			if err != nil {
@@ -87,7 +87,7 @@ func newListActionsCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			resp, err := client.Service.ListActions(context.Background(), &recurv1.ListActionsRequest{})
 			if err != nil {
@@ -129,7 +129,7 @@ func newListGroupsCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			resp, err := client.Service.ListGroups(context.Background(), &recurv1.ListGroupsRequest{})
 			if err != nil {
@@ -163,7 +163,7 @@ func newListPluginsCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			resp, err := client.Service.ListPlugins(context.Background(), &recurv1.ListPluginsRequest{})
 			if err != nil {
@@ -199,7 +199,7 @@ func newListRecurfilesCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			resp, err := client.Service.ListRecurfiles(context.Background(), &recurv1.ListRecurfilesRequest{})
 			if err != nil {

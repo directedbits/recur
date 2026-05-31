@@ -51,7 +51,7 @@ func newInstallCmd() *cobra.Command {
 				}
 				return nil
 			}
-			defer client.Close()
+			defer func() { _ = client.Close() }()
 
 			resp, err := client.Service.InstallPlugin(context.Background(), &recurv1.InstallPluginRequest{
 				Path: installed.Dir,
@@ -103,7 +103,7 @@ func resolvePluginSource(source string, link bool) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		defer os.Remove(archivePath)
+		defer func() { _ = os.Remove(archivePath) }()
 
 		dir, err := pluginfs.Extract(archivePath)
 		if err != nil {
@@ -157,7 +157,7 @@ func newUninstallCmd() *cobra.Command {
 			// Unregister from daemon if running
 			client, err := requireDaemon(cmd)
 			if err == nil {
-				defer client.Close()
+				defer func() { _ = client.Close() }()
 				_, err = client.Service.UninstallPlugin(context.Background(), &recurv1.UninstallPluginRequest{
 					Identifier: identifier,
 				})

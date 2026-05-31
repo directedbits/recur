@@ -36,7 +36,7 @@ func resolveRecurfilePathOrID(cmd *cobra.Command, args []string) (string, error)
 	socketPath, _ := resolveSocketPath(cmd)
 	client := connectOrNilFunc(socketPath)
 	if client != nil {
-		defer client.Close()
+		defer func() { _ = client.Close() }()
 		resp, err := client.Service.InspectEntity(context.Background(), &recurv1.InspectEntityRequest{
 			Identifier: arg,
 			EntityType: "recurfile",
@@ -144,7 +144,7 @@ func runVerify(cmd *cobra.Command, f *recurfileyaml.RawFile, path string, jsonFl
 	socketPath, _ := resolveSocketPath(cmd)
 	client := connectOrNilFunc(socketPath)
 	if client != nil {
-		defer client.Close()
+		defer func() { _ = client.Close() }()
 		absPath, _ := filepath.Abs(path)
 		resp, err := client.Service.VerifyRecurfile(context.Background(), &recurv1.VerifyRecurfileRequest{
 			Path: absPath,
@@ -184,7 +184,7 @@ func runRegister(cmd *cobra.Command, f *recurfileyaml.RawFile, path string, json
 	if err != nil {
 		return fmt.Errorf("daemon is not running (start it with 'recur start'): %w", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	absPath, _ := filepath.Abs(path)
 	resp, err := client.Service.RegisterRecurfile(context.Background(), &recurv1.RegisterRecurfileRequest{

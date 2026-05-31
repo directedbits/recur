@@ -79,7 +79,7 @@ func newConfigSetCmd() *cobra.Command {
 			// If daemon is running, go through gRPC so its Store stays in sync
 			socketPath, _ := resolveSocketPath(cmd)
 			if client := connectOrNilFunc(socketPath); client != nil {
-				defer client.Close()
+				defer func() { _ = client.Close() }()
 				_, err := client.Service.SetConfig(context.Background(), &recurv1.SetConfigRequest{
 					Key:   args[0],
 					Value: args[1],
@@ -127,7 +127,7 @@ func newConfigDeleteCmd() *cobra.Command {
 			// If daemon is running, go through gRPC so its Store stays in sync
 			socketPath, _ := resolveSocketPath(cmd)
 			if client := connectOrNilFunc(socketPath); client != nil {
-				defer client.Close()
+				defer func() { _ = client.Close() }()
 				_, err := client.Service.DeleteConfig(context.Background(), &recurv1.DeleteConfigRequest{
 					Key: args[0],
 				})
@@ -187,7 +187,7 @@ func populateCLIArgsFromDaemon(cmd *cobra.Command, store *pkgconfig.Store[config
 	if client == nil {
 		return
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	resp, err := client.Service.GetStatus(context.Background(), &recurv1.GetStatusRequest{})
 	if err != nil || resp.LaunchArgs == nil {
@@ -210,7 +210,7 @@ func populateCLIArgsFromDaemon(cmd *cobra.Command, store *pkgconfig.Store[config
 	}
 
 	if hasOverrides {
-		store.Set("cli args", cliArgs)
+		_ = store.Set("cli args", cliArgs)
 	}
 }
 

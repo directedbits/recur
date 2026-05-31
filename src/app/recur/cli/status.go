@@ -180,7 +180,7 @@ func buildStatusJSON(command *cobra.Command, running bool, pid int, verbose bool
 		out.Warnings = append(out.Warnings, "could not connect to daemon socket")
 		return out
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	resp, err := client.Service.GetStatus(context.Background(), &recurv1.GetStatusRequest{})
 	if err != nil {
@@ -234,7 +234,7 @@ func getRunningDaemonStatus(command *cobra.Command) (messages []statusMessage, h
 		return
 	}
 
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 	response, err := client.Service.GetStatus(context.Background(), &recurv1.GetStatusRequest{})
 
 	if err != nil {

@@ -112,7 +112,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("connecting to daemon: %v", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	// Set up signal handler for graceful shutdown
 	sigCh := make(chan os.Signal, 1)
