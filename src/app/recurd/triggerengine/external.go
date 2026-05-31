@@ -147,8 +147,8 @@ func (d *externalDriver) Start() (<-chan TriggerEvent, error) {
 		Config:      d.config,
 	}
 	data, _ := json.Marshal(payload)
-	stdin.Write(data)
-	stdin.Close()
+	_, _ = stdin.Write(data)
+	_ = stdin.Close()
 
 	// Register with router so gRPC callbacks reach our events channel
 	d.router.Register(d.triggerID, d.events)
@@ -211,7 +211,7 @@ func (d *externalDriver) Stop() {
 // events channel so the engine's dispatchLoop terminates.
 func (d *externalDriver) monitorProcess() {
 	if d.cmd != nil {
-		d.cmd.Wait()
+		_ = d.cmd.Wait()
 	}
 
 	d.router.Deregister(d.triggerID)

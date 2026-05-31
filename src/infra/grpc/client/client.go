@@ -33,7 +33,7 @@ func Connect(socketPath string) (*Client, error) {
 
 	_, err = svc.GetStatus(ctx, &recurv1.GetStatusRequest{})
 	if err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("could not connect to daemon at %s: %w", socketPath, err)
 	}
 
@@ -52,7 +52,7 @@ func ConnectOrNil(socketPath string) *Client {
 	if err != nil {
 		return nil
 	}
-	conn.Close()
+	_ = conn.Close()
 
 	client, err := Connect(socketPath)
 	if err != nil {

@@ -22,5 +22,5 @@ func (s *dbusSubscriber) Subscribe(deviceType, deviceBus string) (<-chan DeviceE
 }
 
 func (s *dbusSubscriber) Close() {
-	s.conn.Close()
+	_ = s.conn.Close()
 }

@@ -40,7 +40,7 @@ func newStartCmd() *cobra.Command {
 
 			// Clean up stale PID file if needed
 			if pid != 0 {
-				processos.RemovePID(pidPath)
+				_ = processos.RemovePID(pidPath)
 			}
 
 			quiet, _ := cmd.Flags().GetBool("quiet")

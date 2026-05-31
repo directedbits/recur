@@ -98,7 +98,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("connecting to daemon: %v", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	log.Printf("started: trigger_type=%s device_type=%s device_bus=%s trigger_id=%s", triggerType, deviceType, deviceBus, triggerID)
 

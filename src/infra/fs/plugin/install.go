@@ -41,7 +41,7 @@ func Install(srcDir string, link bool) (*InstalledPlugin, error) {
 	} else {
 		if err := copyDir(absSrc, destDir); err != nil {
 			// Clean up partial copy
-			os.RemoveAll(destDir)
+			_ = os.RemoveAll(destDir)
 			return nil, fmt.Errorf("could not copy plugin: %w", err)
 		}
 	}
@@ -50,7 +50,7 @@ func Install(srcDir string, link bool) (*InstalledPlugin, error) {
 	installed, err := LoadPlugin(destDir)
 	if err != nil {
 		// Shouldn't happen since we already validated, but clean up
-		os.RemoveAll(destDir)
+		_ = os.RemoveAll(destDir)
 		return nil, fmt.Errorf("installed plugin failed to load: %w", err)
 	}
 

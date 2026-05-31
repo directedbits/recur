@@ -127,9 +127,6 @@ func TestGenerateGroupStub_OptionWithoutDescription(t *testing.T) {
 	// No trailing comment when no description
 	lines := strings.Split(result, "\n")
 	for _, line := range lines {
-		if strings.Contains(line, "path:") && !strings.Contains(line, "#") {
-			// good — no comment
-		}
 		if strings.Contains(line, "# interval:") && strings.Count(line, "#") > 1 {
 			t.Error("expected no description comment for interval")
 		}

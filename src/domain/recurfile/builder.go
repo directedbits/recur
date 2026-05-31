@@ -48,19 +48,19 @@ type TriggerSettings struct {
 func BuildTriggerSettings(daemon, pluginManifest, pluginOverride, group, trigger map[string]any) TriggerSettings {
 	store := pkgconfig.NewMapStore("daemon", "plugin", "plugin_override", "group", "trigger")
 	if daemon != nil {
-		store.Set("daemon", daemon)
+		_ = store.Set("daemon", daemon)
 	}
 	if pluginManifest != nil {
-		store.Set("plugin", pluginManifest)
+		_ = store.Set("plugin", pluginManifest)
 	}
 	if pluginOverride != nil {
-		store.Set("plugin_override", pluginOverride)
+		_ = store.Set("plugin_override", pluginOverride)
 	}
 	if group != nil {
-		store.Set("group", group)
+		_ = store.Set("group", group)
 	}
 	if trigger != nil {
-		store.Set("trigger", trigger)
+		_ = store.Set("trigger", trigger)
 	}
 	return TriggerSettings{
 		ConcurrencyMode:      mapStoreString(store, "concurrency_mode"),

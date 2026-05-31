@@ -22,5 +22,5 @@ func cleanupListener(socketPath string) error {
 
 // cleanupOnStop removes the Unix socket file after stopping.
 func cleanupOnStop(socketPath string) {
-	os.Remove(socketPath)
+	_ = os.Remove(socketPath)
 }

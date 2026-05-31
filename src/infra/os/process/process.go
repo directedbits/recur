@@ -63,7 +63,7 @@ func WritePID(path string, pid int) error {
 		return fmt.Errorf("could not close temp PID file: %w", err)
 	}
 	if err := os.Rename(tmpPath, path); err != nil {
-		os.Remove(tmpPath)
+		_ = os.Remove(tmpPath)
 		return fmt.Errorf("could not rename PID file: %w", err)
 	}
 

@@ -16,13 +16,13 @@ func setPluginProcessGroup(cmd *exec.Cmd) {
 // killPluginProcess sends SIGTERM to the plugin's process group.
 func killPluginProcess(cmd *exec.Cmd) {
 	if cmd.Process != nil {
-		syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
+		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
 	}
 }
 
 // forceKillPluginProcess sends SIGKILL to the plugin's process group.
 func forceKillPluginProcess(cmd *exec.Cmd) {
 	if cmd.Process != nil {
-		syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
 	}
 }

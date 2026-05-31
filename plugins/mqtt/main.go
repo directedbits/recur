@@ -101,7 +101,7 @@ func runTrigger(input *pluginInput) {
 	if err != nil {
 		log.Fatalf("connecting to daemon: %v", err)
 	}
-	defer client.Close()
+	defer func() { _ = client.Close() }()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
@@ -184,5 +184,5 @@ func writeActionOutputTo(w io.Writer, success bool, output, errMsg string) {
 		Output:  output,
 		Error:   errMsg,
 	}
-	json.NewEncoder(w).Encode(out)
+	_ = json.NewEncoder(w).Encode(out)
 }

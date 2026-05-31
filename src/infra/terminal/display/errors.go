@@ -128,7 +128,7 @@ func EmitAmbiguousJSON(ambiguous *recurv1.AmbiguousEntity) error {
 		})
 	}
 	data, _ := json.MarshalIndent(payload, "", "  ")
-	fmt.Fprintln(os.Stdout, string(data))
+	_, _ = fmt.Fprintln(os.Stdout, string(data))
 	return &AmbiguousError{Message: fmt.Sprintf("ambiguous identifier %q", ambiguous.Identifier)}
 }
 

@@ -346,7 +346,7 @@ func printStatusReport(messages []statusMessage, entries []statusEntry) {
 		case "warning", "error":
 			fmt.Fprintln(os.Stderr, message.Message)
 		default:
-			fmt.Fprintln(os.Stdout, message.Message)
+			_, _ = fmt.Fprintln(os.Stdout, message.Message)
 		}
 	}
 

@@ -7,6 +7,7 @@ linters:
         - all
         - -QF1003
         - -QF1012
+        - -ST1000
   exclusions:
     rules:
       - path: _test\.go

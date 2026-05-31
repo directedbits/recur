@@ -111,7 +111,7 @@ func StartServer(port, path, method string, maxBodySize int64, secret, signature
 func (s *Server) Stop() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	s.httpServer.Shutdown(ctx)
+	_ = s.httpServer.Shutdown(ctx)
 	<-s.done
 }
 
@@ -126,14 +126,14 @@ func (s *Server) handler(w http.ResponseWriter, r *http.Request) {
 	// Check path (exact match).
 	if r.URL.Path != s.path {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(`{"error":"not found"}`))
+		_, _ = w.Write([]byte(`{"error":"not found"}`))
 		return
 	}
 
 	// Check method.
 	if s.method != "ALL" && r.Method != s.method {
 		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte(`{"error":"method not allowed"}`))
+		_, _ = w.Write([]byte(`{"error":"method not allowed"}`))
 		return
 	}
 
@@ -141,7 +141,7 @@ func (s *Server) handler(w http.ResponseWriter, r *http.Request) {
 	if s.limiter != nil && !s.limiter.Allow() {
 		w.Header().Set("Retry-After", s.retryAfter)
 		w.WriteHeader(http.StatusTooManyRequests)
-		w.Write([]byte(`{"error":"rate limit exceeded"}`))
+		_, _ = w.Write([]byte(`{"error":"rate limit exceeded"}`))
 		return
 	}
 
@@ -150,12 +150,12 @@ func (s *Server) handler(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(limited)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(`{"error":"reading body"}`))
+		_, _ = w.Write([]byte(`{"error":"reading body"}`))
 		return
 	}
 	if int64(len(body)) > s.maxBodySize {
 		w.WriteHeader(http.StatusRequestEntityTooLarge)
-		w.Write([]byte(`{"error":"body too large"}`))
+		_, _ = w.Write([]byte(`{"error":"body too large"}`))
 		return
 	}
 
@@ -164,12 +164,12 @@ func (s *Server) handler(w http.ResponseWriter, r *http.Request) {
 		sig := r.Header.Get(s.signatureHeader)
 		if sig == "" {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"error":"missing signature"}`))
+			_, _ = w.Write([]byte(`{"error":"missing signature"}`))
 			return
 		}
 		if !verifySignature(body, s.secret, sig) {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte(`{"error":"invalid signature"}`))
+			_, _ = w.Write([]byte(`{"error":"invalid signature"}`))
 			return
 		}
 	}
@@ -197,11 +197,11 @@ func (s *Server) handler(w http.ResponseWriter, r *http.Request) {
 	select {
 	case s.events <- evt:
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"accepted"}`))
+		_, _ = w.Write([]byte(`{"status":"accepted"}`))
 	default:
 		w.Header().Set("Retry-After", s.retryAfter)
 		w.WriteHeader(http.StatusTooManyRequests)
-		w.Write([]byte(`{"error":"server busy"}`))
+		_, _ = w.Write([]byte(`{"error":"server busy"}`))
 	}
 }
 

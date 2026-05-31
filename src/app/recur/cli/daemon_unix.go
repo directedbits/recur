@@ -14,5 +14,5 @@ func daemonSysProcAttr() *syscall.SysProcAttr {
 
 // detachProcess releases the daemon process so it runs independently.
 func detachProcess(proc *exec.Cmd) {
-	proc.Process.Release()
+	_ = proc.Process.Release()
 }

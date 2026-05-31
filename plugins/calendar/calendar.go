@@ -146,7 +146,7 @@ func (p *Poller) poll() {
 		return
 	}
 	if closer, ok := reader.(io.Closer); ok {
-		defer closer.Close()
+		defer func() { _ = closer.Close() }()
 	}
 
 	matched := p.matchEvents(reader, now)
@@ -269,7 +269,7 @@ func fetchSource(source string) (io.Reader, error) {
 			return nil, fmt.Errorf("HTTP GET %s: %w", source, err)
 		}
 		if resp.StatusCode != http.StatusOK {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			return nil, fmt.Errorf("HTTP GET %s: status %d", source, resp.StatusCode)
 		}
 		return resp.Body, nil

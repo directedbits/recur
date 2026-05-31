@@ -216,7 +216,7 @@ func setPluginByKey(store *pkgconfig.Store[Config], layer, yamlKey, value string
 		layerVal.Plugins[ns] = make(map[string]any)
 	}
 	layerVal.Plugins[ns][field] = value
-	store.Set(layer, layerVal)
+	_ = store.Set(layer, layerVal)
 	return nil
 }
 
@@ -241,7 +241,7 @@ func deletePluginByKey(store *pkgconfig.Store[Config], layer, yamlKey string) er
 	if len(nsConfig) == 0 {
 		delete(layerVal.Plugins, ns)
 	}
-	store.Set(layer, layerVal)
+	_ = store.Set(layer, layerVal)
 	return nil
 }
 

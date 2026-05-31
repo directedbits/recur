@@ -195,7 +195,7 @@ func (d *Daemon) Run() error {
 				slog.Warn("could not save state on shutdown", "error", err)
 			}
 		}
-		processos.RemovePID(d.pidPath)
+		_ = processos.RemovePID(d.pidPath)
 		slog.Info("daemon stopped")
 	}()
 
@@ -203,7 +203,7 @@ func (d *Daemon) Run() error {
 	svc := &service{daemon: d}
 	srv, err := servergrpc.NewServer(sockPath, svc)
 	if err != nil {
-		processos.RemovePID(d.pidPath)
+		_ = processos.RemovePID(d.pidPath)
 		return err
 	}
 
