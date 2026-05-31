@@ -89,7 +89,7 @@ tasks:
     internal: true
     cmds:
       - cmd /c "if exist {{.BIN_DIR}} rd /s /q {{.BIN_DIR}}"
-      - cmd /c "del /q src\infra\grpc\watch\v1\*.pb.go 2>nul"
+      - cmd /c "del /q src\infra\grpc\v1\*.pb.go 2>nul"
 
   generate:
     desc: Generate protobuf Go code

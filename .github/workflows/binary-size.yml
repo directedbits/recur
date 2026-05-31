@@ -18,6 +18,14 @@ jobs:
         with:
           go-version: "1.25"
 
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.66.0"
+
+      - name: Generate protobuf (PR)
+        working-directory: api
+        run: buf generate
+
       - name: Build PR binaries
         run: |
           mkdir -p dist/pr
@@ -30,6 +38,7 @@ jobs:
       - name: Build base binaries
         run: |
           git checkout "${{ github.event.pull_request.base.sha }}"
+          (cd api && buf generate) 2>/dev/null || true
           mkdir -p dist/base
           CGO_ENABLED=0 go build -o dist/base/recur ./src/app/recur 2>/dev/null || true
           CGO_ENABLED=0 go build -o dist/base/recurd ./src/app/recurd 2>/dev/null || true
@@ -37,6 +46,7 @@ jobs:
             CGO_ENABLED=0 go build -o "dist/base/$plugin" "./plugins/$plugin/" 2>/dev/null || true
           done
           git checkout "${{ github.event.pull_request.head.sha }}"
+          (cd api && buf generate)
 
       - name: Compare sizes
         id: compare

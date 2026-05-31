@@ -43,6 +43,14 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
 
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.66.0"
+
+      - name: Generate protobuf
+        working-directory: api
+        run: buf generate
+
       - name: Set artifact name
         id: vars
         run: |

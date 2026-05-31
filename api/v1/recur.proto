@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package recur.v1;
+package v1;
 
-option go_package = "github.com/directedbits/recur/src/infra/grpc/recur/v1;recurv1";
+option go_package = "github.com/directedbits/recur/src/infra/grpc/v1;recurv1";
 
 import "google/protobuf/timestamp.proto";
 

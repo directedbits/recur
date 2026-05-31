@@ -16,6 +16,14 @@ jobs:
         with:
           go-version: "1.25"
 
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.66.0"
+
+      - name: Generate protobuf
+        working-directory: api
+        run: buf generate
+
       - name: Unit tests
         run: go test ./src/...
 
@@ -44,6 +52,14 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.25"
+
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.66.0"
+
+      - name: Generate protobuf
+        working-directory: api
+        run: buf generate
 
       - name: Check coverage threshold
         run: bash scripts/check-coverage.sh 75
