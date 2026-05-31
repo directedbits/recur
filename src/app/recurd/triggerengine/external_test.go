@@ -284,12 +284,9 @@ func main() {
 	// Stop should terminate gracefully
 	d.Stop()
 
-	// Events channel should eventually close
+	// Events channel should eventually close (or emit at least once).
 	select {
-	case _, ok := <-events:
-		if ok {
-			// Got an event, that's fine, keep draining
-		}
+	case <-events:
 	case <-time.After(5 * time.Second):
 		t.Fatal("timeout waiting for events channel to close")
 	}

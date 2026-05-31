@@ -186,9 +186,7 @@ func startMockDaemon(t *testing.T, svc *mockService) func() {
 	recurv1.RegisterRecurServiceServer(srv, svc)
 
 	go func() {
-		if err := srv.Serve(lis); err != nil {
-			// Server stopped
-		}
+		_ = srv.Serve(lis)
 	}()
 
 	// Override dial functions to use bufconn

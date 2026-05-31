@@ -1,6 +1,8 @@
 package configyaml
 
 import (
+	"log/slog"
+
 	pkgconfig "github.com/directedbits/recur/pkg/config"
 	"github.com/directedbits/recur/src/infra/fs/atomicfile"
 )
@@ -43,8 +45,9 @@ func InitStore(configPath *string, cliOverrides *Config) (*pkgconfig.Store[Confi
 	}
 
 	// Recover promotes any orphaned temp files from interrupted config writes.
+	// Non-fatal — we'll still try to load whatever's on disk.
 	if err := atomicfile.Recover(resolvedPath); err != nil {
-		// Non-fatal — log and continue
+		slog.Warn("config recover failed", "path", resolvedPath, "error", err)
 	}
 
 	store, err := NewStore(resolvedPath)
