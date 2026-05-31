@@ -266,7 +266,7 @@ func isNilValue(v any) bool {
 		return true
 	}
 	rv := reflect.ValueOf(v)
-	return rv.Kind() == reflect.Ptr && rv.IsNil()
+	return rv.Kind() == reflect.Pointer && rv.IsNil()
 }
 
 // derefValue dereferences a pointer value to its underlying value.
@@ -276,7 +276,7 @@ func derefValue(v any) any {
 		return nil
 	}
 	rv := reflect.ValueOf(v)
-	if rv.Kind() == reflect.Ptr {
+	if rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
 			return nil
 		}

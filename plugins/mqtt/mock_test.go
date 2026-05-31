@@ -17,32 +17,14 @@ func (t *mockToken) WaitTimeout(d time.Duration) bool   { return true }
 func (t *mockToken) Done() <-chan struct{}               { ch := make(chan struct{}); close(ch); return ch }
 func (t *mockToken) Error() error                       { return t.err }
 
-// mockMessage implements mqtt.Message for test use.
-type mockMessage struct {
-	topic     string
-	payload   []byte
-	qos       byte
-	retained  bool
-	messageID uint16
-}
-
-func (m *mockMessage) Duplicate() bool   { return false }
-func (m *mockMessage) Qos() byte         { return m.qos }
-func (m *mockMessage) Retained() bool    { return m.retained }
-func (m *mockMessage) Topic() string     { return m.topic }
-func (m *mockMessage) MessageID() uint16 { return m.messageID }
-func (m *mockMessage) Payload() []byte   { return m.payload }
-func (m *mockMessage) Ack()              {}
-
 // mockClient implements MQTTClient for testing.
 type mockClient struct {
-	mu             sync.Mutex
-	connectErr     error
-	subscribeErr   error
-	publishErr     error
-	publishHandler mqtt.MessageHandler // captured from options
-	published      []publishCall
-	subscribed     []subscribeCall
+	mu           sync.Mutex
+	connectErr   error
+	subscribeErr error
+	publishErr   error
+	published    []publishCall
+	subscribed   []subscribeCall
 }
 
 type publishCall struct {

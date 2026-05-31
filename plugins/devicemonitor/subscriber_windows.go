@@ -114,10 +114,9 @@ func enumerateDrives() (map[string]driveInfo, error) {
 	result := make(map[string]driveInfo)
 	for _, disk := range disks {
 		info := driveInfo{
-			deviceID:   disk.DeviceID,
-			model:      disk.VolumeName,
-			driveType:  disk.DriveType,
-			volumeName: disk.VolumeName,
+			deviceID:  disk.DeviceID,
+			model:     disk.VolumeName,
+			driveType: disk.DriveType,
 		}
 		if info.model == "" {
 			info.model = disk.Description

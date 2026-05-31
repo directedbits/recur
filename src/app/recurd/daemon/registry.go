@@ -309,11 +309,6 @@ func (r *registry) resolveEntity(identifier string, allowedTypes ...string) []En
 	return filtered
 }
 
-// findEntity returns all entity refs matching the identifier via the unified index.
-func (r *registry) findEntity(identifier string) []EntityRef {
-	return r.resolveEntity(identifier)
-}
-
 // findEntityByType returns the first entity ref matching the identifier and type, or nil.
 func (r *registry) findEntityByType(identifier, entityType string) *EntityRef {
 	refs := r.resolveEntity(identifier, entityType)

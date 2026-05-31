@@ -43,7 +43,7 @@ func Write(path string, data []byte) error {
 	}
 
 	if err := os.Rename(tmpPath, path); err != nil {
-		os.Remove(tmpPath)
+		_ = os.Remove(tmpPath)
 		return fmt.Errorf("renaming temp file: %w", err)
 	}
 
@@ -97,7 +97,7 @@ func Recover(path string) error {
 	// Clean up any remaining temp files
 	for _, entry := range entries {
 		if entry != newest {
-			os.Remove(entry)
+			_ = os.Remove(entry)
 		}
 		// newest was already renamed, but Remove on a missing file is harmless
 	}

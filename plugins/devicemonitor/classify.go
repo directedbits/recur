@@ -9,7 +9,6 @@ type driveInfo struct {
 	model         string
 	interfaceType string
 	driveType     uint32 // from Win32_LogicalDisk: 2=Removable, 3=Fixed
-	volumeName    string
 }
 
 // classifyWinDevice maps a Windows logical disk to the (DeviceType, DeviceBus)

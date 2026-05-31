@@ -1175,7 +1175,7 @@ func formatConfigValue(v any) string {
 		return ""
 	}
 	rv := reflect.ValueOf(v)
-	if rv.Kind() == reflect.Ptr {
+	if rv.Kind() == reflect.Pointer {
 		if rv.IsNil() {
 			return ""
 		}

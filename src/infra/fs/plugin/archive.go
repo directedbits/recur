@@ -22,7 +22,7 @@ func Download(rawURL string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("download failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("download failed: HTTP %d", resp.StatusCode)
@@ -42,10 +42,10 @@ func Download(rawURL string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("creating temp file: %w", err)
 	}
-	defer tmp.Close()
+	defer func() { _ = tmp.Close() }()
 
 	if _, err := io.Copy(tmp, resp.Body); err != nil {
-		os.Remove(tmp.Name())
+		_ = os.Remove(tmp.Name())
 		return "", fmt.Errorf("saving download: %w", err)
 	}
 
@@ -101,13 +101,13 @@ func extractTarGz(archivePath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	gz, err := gzip.NewReader(f)
 	if err != nil {
 		return "", fmt.Errorf("gzip open: %w", err)
 	}
-	defer gz.Close()
+	defer func() { _ = gz.Close() }()
 
 	return extractTar(tar.NewReader(gz))
 }
@@ -124,7 +124,7 @@ func extractTar(tr *tar.Reader) (string, error) {
 			break
 		}
 		if err != nil {
-			os.RemoveAll(destDir)
+			_ = os.RemoveAll(destDir)
 			return "", fmt.Errorf("tar read: %w", err)
 		}
 
@@ -136,20 +136,29 @@ func extractTar(tr *tar.Reader) (string, error) {
 
 		switch hdr.Typeflag {
 		case tar.TypeDir:
-			os.MkdirAll(target, os.FileMode(hdr.Mode)|0755)
+			if err := os.MkdirAll(target, os.FileMode(hdr.Mode)|0755); err != nil {
+				_ = os.RemoveAll(destDir)
+				return "", err
+			}
 		case tar.TypeReg:
-			os.MkdirAll(filepath.Dir(target), 0755)
+			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+				_ = os.RemoveAll(destDir)
+				return "", err
+			}
 			out, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.FileMode(hdr.Mode))
 			if err != nil {
-				os.RemoveAll(destDir)
+				_ = os.RemoveAll(destDir)
 				return "", err
 			}
 			if _, err := io.Copy(out, tr); err != nil {
-				out.Close()
-				os.RemoveAll(destDir)
+				_ = out.Close()
+				_ = os.RemoveAll(destDir)
 				return "", err
 			}
-			out.Close()
+			if err := out.Close(); err != nil {
+				_ = os.RemoveAll(destDir)
+				return "", err
+			}
 		}
 	}
 
@@ -161,7 +170,7 @@ func extractZip(archivePath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("zip open: %w", err)
 	}
-	defer r.Close()
+	defer func() { _ = r.Close() }()
 
 	destDir, err := os.MkdirTemp("", "recur-extract-*")
 	if err != nil {
@@ -175,29 +184,38 @@ func extractZip(archivePath string) (string, error) {
 		}
 
 		if f.FileInfo().IsDir() {
-			os.MkdirAll(target, 0755)
+			if err := os.MkdirAll(target, 0755); err != nil {
+				_ = os.RemoveAll(destDir)
+				return "", err
+			}
 			continue
 		}
 
-		os.MkdirAll(filepath.Dir(target), 0755)
+		if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+			_ = os.RemoveAll(destDir)
+			return "", err
+		}
 		out, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, f.Mode())
 		if err != nil {
-			os.RemoveAll(destDir)
+			_ = os.RemoveAll(destDir)
 			return "", err
 		}
 
 		rc, err := f.Open()
 		if err != nil {
-			out.Close()
-			os.RemoveAll(destDir)
+			_ = out.Close()
+			_ = os.RemoveAll(destDir)
 			return "", err
 		}
 
 		_, err = io.Copy(out, rc)
-		rc.Close()
-		out.Close()
+		_ = rc.Close()
+		closeErr := out.Close()
+		if err == nil {
+			err = closeErr
+		}
 		if err != nil {
-			os.RemoveAll(destDir)
+			_ = os.RemoveAll(destDir)
 			return "", err
 		}
 	}

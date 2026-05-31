@@ -23,6 +23,6 @@ func cancelFunc(cmd *exec.Cmd) func() error {
 // killProcessGroup sends SIGTERM to the process group (negative PID).
 func killProcessGroup(cmd *exec.Cmd) {
 	if cmd.Process != nil {
-		syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
+		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGTERM)
 	}
 }

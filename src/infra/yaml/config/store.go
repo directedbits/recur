@@ -11,7 +11,7 @@ import (
 // "cli args" layer afterwards if needed.
 func NewStore(configPath string) (*pkgconfig.Store[Config], error) {
 	store := pkgconfig.NewStore[Config]("default", "file", "cli args")
-	store.Set("default", *DefaultConfig())
+	_ = store.Set("default", *DefaultConfig())
 
 	raw, err := loadRaw(configPath)
 	if err != nil {
@@ -20,7 +20,7 @@ func NewStore(configPath string) (*pkgconfig.Store[Config], error) {
 	// LoadRaw returns a zero-value Config (all nil pointers) when the file
 	// doesn't exist, so setting it is always safe — nil fields are transparent
 	// in the overlay.
-	store.Set("file", *raw)
+	_ = store.Set("file", *raw)
 
 	return store, nil
 }
@@ -53,7 +53,7 @@ func InitStore(configPath *string, cliOverrides *Config) (*pkgconfig.Store[Confi
 	}
 
 	if cliOverrides != nil {
-		store.Set("cli args", *cliOverrides)
+		_ = store.Set("cli args", *cliOverrides)
 	}
 
 	return store, resolvedPath, nil

@@ -52,14 +52,14 @@ func parseInput(r io.Reader) (*parsedTimerInput, error) {
 	case "Cron":
 		result.Expression = optString(input.Options, "expression", "")
 		if result.Expression == "" {
-			return nil, fmt.Errorf("Cron trigger requires 'expression' option")
+			return nil, fmt.Errorf("cron trigger requires 'expression' option")
 		}
 		result.Timezone = optString(input.Options, "timezone", "Local")
 
 	case "Interval":
 		result.Every = optString(input.Options, "every", "")
 		if result.Every == "" {
-			return nil, fmt.Errorf("Interval trigger requires 'every' option")
+			return nil, fmt.Errorf("interval trigger requires 'every' option")
 		}
 
 	default:

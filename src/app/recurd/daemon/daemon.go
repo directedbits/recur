@@ -477,12 +477,6 @@ func (d *Daemon) loadState() error {
 		return nil
 	}
 
-	// Build lookup maps for persisted entity states
-	type entityStates struct {
-		triggers map[string]statejsonfile.EntityState
-		actions  map[string]statejsonfile.EntityState
-	}
-
 	for _, ws := range f.Recurfiles {
 		// Re-parse and register the recurfile
 		wfFile, err := recurfileyaml.Load(ws.FilePath)

@@ -54,12 +54,12 @@ func WritePID(path string, pid int) error {
 	tmpPath := tmp.Name()
 
 	if _, err := fmt.Fprintf(tmp, "%d\n", pid); err != nil {
-		tmp.Close()
-		os.Remove(tmpPath)
+		_ = tmp.Close()
+		_ = os.Remove(tmpPath)
 		return fmt.Errorf("could not write PID: %w", err)
 	}
 	if err := tmp.Close(); err != nil {
-		os.Remove(tmpPath)
+		_ = os.Remove(tmpPath)
 		return fmt.Errorf("could not close temp PID file: %w", err)
 	}
 	if err := os.Rename(tmpPath, path); err != nil {

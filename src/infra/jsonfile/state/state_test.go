@@ -136,7 +136,7 @@ func TestSaveEmptyFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Load failed: %v", err)
 	}
-	if loaded.Recurfiles != nil && len(loaded.Recurfiles) != 0 {
+	if len(loaded.Recurfiles) != 0 {
 		t.Errorf("expected nil or empty recurfiles, got %d", len(loaded.Recurfiles))
 	}
 }
