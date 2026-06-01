@@ -187,7 +187,7 @@ jobs:
       # published, so a single-step create+publish hits "Cannot upload
       # asset to an immutable release" on whichever file uploads last.
       - name: Create GitHub Release (draft)
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           draft: true
           files: |
