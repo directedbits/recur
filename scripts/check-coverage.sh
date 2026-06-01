@@ -13,10 +13,11 @@ set -euo pipefail
 THRESHOLD="${1:-75}"
 
 # Exclusions:
-# - src/cmd/        entry points (main packages, no unit tests expected)
-# - src/app/cli/    CLI commands (integration-tested via e2e)
-# - *.pb.go         generated protobuf code (any location)
-EXCLUDE_PATTERN='src/cmd/|src/app/cli/|\.pb\.go:'
+# - src/app/recur/main.go    entry point for recur binary (no unit tests expected)
+# - src/app/recurd/main.go   entry point for recurd binary (no unit tests expected)
+# - src/app/recur/cli/       CLI commands (integration-tested via e2e)
+# - *.pb.go                  generated protobuf code (any location)
+EXCLUDE_PATTERN='src/app/recur/main\.go:|src/app/recurd/main\.go:|src/app/recur/cli/|\.pb\.go:'
 
 go test -coverprofile=coverage.out ./src/...
 
@@ -37,7 +38,7 @@ fi
 
 echo "Coverage: ${TOTAL}% (threshold: ${THRESHOLD}%)"
 
-if (( $(echo "$TOTAL < $THRESHOLD" | bc -l) )); then
+if awk -v t="$TOTAL" -v th="$THRESHOLD" 'BEGIN { exit (t+0 < th+0) ? 0 : 1 }'; then
   echo "FAIL: coverage ${TOTAL}% below ${THRESHOLD}% threshold"
   exit 1
 fi
