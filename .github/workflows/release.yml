@@ -181,14 +181,26 @@ jobs:
             --bundle "recur-${TAG}-checksums.txt.cosign.bundle" \
             "recur-${TAG}-checksums.txt"
 
-      - name: Create GitHub Release
+      # Two-step: create the release as a draft so all assets (incl. the
+      # cosign bundle) can be uploaded, then publish. GitHub's Immutable
+      # Releases setting locks asset uploads as soon as the release is
+      # published, so a single-step create+publish hits "Cannot upload
+      # asset to an immutable release" on whichever file uploads last.
+      - name: Create GitHub Release (draft)
         uses: softprops/action-gh-release@v2
         with:
+          draft: true
           files: |
             artifacts/*.tar.gz
             artifacts/recur-*-checksums.txt
             artifacts/recur-*-checksums.txt.cosign.bundle
           generate_release_notes: true
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.vars.outputs.tag }}
+        run: gh release edit "$TAG" --draft=false --repo "${{ github.repository }}"
 
   update-homebrew-tap:
     needs: release
