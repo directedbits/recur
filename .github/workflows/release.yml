@@ -1,0 +1,304 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  GO_VERSION: "1.25"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: linux
+            goarch: arm
+            goarm: "7"
+          - goos: linux
+            goarch: "386"
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+            ext: ".exe"
+          - goos: windows
+            goarch: arm64
+            ext: ".exe"
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.66.0"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate protobuf
+        working-directory: api
+        run: buf generate
+
+      - name: Set artifact name
+        id: vars
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          SUFFIX="${{ matrix.goos }}-${{ matrix.goarch }}"
+          if [ -n "${{ matrix.goarm }}" ]; then
+            SUFFIX="${SUFFIX}v${{ matrix.goarm }}"
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "suffix=$SUFFIX" >> "$GITHUB_OUTPUT"
+          echo "artifact=recur-${TAG}-${SUFFIX}" >> "$GITHUB_OUTPUT"
+
+      - name: Build core binaries
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
+          CGO_ENABLED: "0"
+        run: |
+          OUTDIR="dist/${{ steps.vars.outputs.artifact }}"
+          mkdir -p "$OUTDIR"
+          EXT="${{ matrix.ext }}"
+          LDFLAGS="-X github.com/directedbits/recur/src/app/cli.Version=${{ steps.vars.outputs.tag }}"
+          go build -ldflags "$LDFLAGS" -o "$OUTDIR/recur${EXT}" ./src/app/recur
+          go build -ldflags "$LDFLAGS" -o "$OUTDIR/recurd${EXT}" ./src/app/recurd
+
+      - name: Build plugins
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
+          CGO_ENABLED: "0"
+        run: |
+          OUTDIR="dist/${{ steps.vars.outputs.artifact }}/plugins"
+          PLUGINS="calendar docker mqtt timer webhook"
+          if [ "${{ matrix.goos }}" = "linux" ] || [ "${{ matrix.goos }}" = "windows" ]; then
+            PLUGINS="$PLUGINS devicemonitor"
+          fi
+          for plugin in $PLUGINS; do
+            mkdir -p "$OUTDIR/$plugin"
+            EXT="${{ matrix.ext }}"
+            go build -o "$OUTDIR/$plugin/${plugin}${EXT}" "./plugins/$plugin/"
+            cp "./plugins/$plugin/manifest.yaml" "$OUTDIR/$plugin/"
+          done
+
+      - name: Smoke test (linux-amd64 only)
+        if: matrix.goos == 'linux' && matrix.goarch == 'amd64'
+        run: |
+          OUTDIR="dist/${{ steps.vars.outputs.artifact }}"
+          "$OUTDIR/recur" version
+          "$OUTDIR/recur" config get
+
+      - name: Report binary sizes
+        run: |
+          OUTDIR="dist/${{ steps.vars.outputs.artifact }}"
+          EXT="${{ matrix.ext }}"
+          echo "### Binary sizes (${{ steps.vars.outputs.suffix }})" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          ls -lh "$OUTDIR/recur${EXT}" "$OUTDIR/recurd${EXT}" >> "$GITHUB_STEP_SUMMARY"
+          for f in "$OUTDIR"/plugins/*/; do
+            plugin=$(basename "$f")
+            ls -lh "$f${plugin}${EXT}" >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+          done
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create tarball
+        run: |
+          cd dist
+          tar czf "${{ steps.vars.outputs.artifact }}.tar.gz" "${{ steps.vars.outputs.artifact }}"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.vars.outputs.artifact }}
+          path: dist/${{ steps.vars.outputs.artifact }}.tar.gz
+
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set tag
+        id: vars
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+
+      - name: Create source archive
+        run: |
+          git archive --format=tar.gz --prefix="recur-${{ steps.vars.outputs.tag }}/" \
+            -o "recur-${{ steps.vars.outputs.tag }}-source.tar.gz" HEAD
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: recur-${{ steps.vars.outputs.tag }}-source
+          path: recur-${{ steps.vars.outputs.tag }}-source.tar.gz
+
+  release:
+    needs: [build, source]
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write # required for cosign keyless signing via GitHub OIDC
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: find artifacts -type f
+
+      - name: Generate sha256 checksums
+        id: vars
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          cd artifacts
+          sha256sum *.tar.gz > "recur-${TAG}-checksums.txt"
+          cat "recur-${TAG}-checksums.txt"
+
+      - uses: sigstore/cosign-installer@v4.1.2
+
+      - name: Sign checksums (cosign keyless via GitHub OIDC)
+        env:
+          TAG: ${{ steps.vars.outputs.tag }}
+        run: |
+          cd artifacts
+          cosign sign-blob --yes \
+            --bundle "recur-${TAG}-checksums.txt.cosign.bundle" \
+            "recur-${TAG}-checksums.txt"
+
+      - name: Update CHANGELOG
+        id: changelog
+        uses: requarks/changelog-action@v1
+        with:
+          token: ${{ github.token }}
+          tag: ${{ github.ref_name }}
+
+      # Two-step: create the release as a draft so all assets (incl. the
+      # cosign bundle) can be uploaded, then publish. GitHub's Immutable
+      # Releases setting locks asset uploads as soon as the release is
+      # published, so a single-step create+publish hits "Cannot upload
+      # asset to an immutable release" on whichever file uploads last.
+      - name: Create GitHub Release (draft)
+        uses: softprops/action-gh-release@v3
+        with:
+          draft: true
+          makeLatest: true
+          body: ${{ steps.changelog.outputs.changes }}
+          files: |
+            artifacts/*.tar.gz
+            artifacts/recur-*-checksums.txt
+            artifacts/recur-*-checksums.txt.cosign.bundle
+          generate_release_notes: true
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.vars.outputs.tag }}
+        run: gh release edit "$TAG" --draft=false --repo "${{ github.repository }}"
+
+  update-homebrew-tap:
+    needs: release
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: packaging/homebrew
+
+      - uses: actions/checkout@v6
+        with:
+          repository: directedbits/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: tap
+
+      - name: Compute release sha256s
+        id: sums
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+          # gh release download handles GITHUB_TOKEN auth; the bare
+          # /releases/download/<tag>/<file> URL doesn't work for private repos.
+          for plat in darwin-arm64 darwin-amd64 linux-arm64 linux-amd64; do
+            asset="recur-${TAG}-${plat}.tar.gz"
+            gh release download "$TAG" \
+              --repo "${{ github.repository }}" \
+              --pattern "$asset" \
+              --output "${plat}.tar.gz"
+            sum=$(sha256sum "${plat}.tar.gz" | awk '{print $1}')
+            # Normalize plat (dashes -> underscores) for env var name
+            var="SHA256_$(echo "$plat" | tr 'a-z-' 'A-Z_')"
+            echo "${var}=${sum}" >> "$GITHUB_ENV"
+          done
+
+      - name: Render formula from template
+        env:
+          VERSION: ${{ steps.sums.outputs.version }}
+        run: |
+          mkdir -p tap/Formula
+          envsubst < packaging/homebrew/recur.rb.template > tap/Formula/recur.rb
+
+      - name: Commit and push to tap
+        working-directory: tap
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula/recur.rb
+          if git diff --cached --quiet; then
+            echo "No formula changes."
+            exit 0
+          fi
+          git commit -m "recur ${{ steps.sums.outputs.version }}"
+          git push
+
+  cleanup:
+    needs: [build, source, release, update-homebrew-tap]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      # Release cleanup: only when the GitHub Release was published
+      # successfully. The per-platform tarballs and source archive are
+      # now duplicated as Release assets, so the workflow-level copies
+      # can go. Skipped on release failure so the user can inspect or
+      # re-upload from the artifacts.
+      - name: Release cleanup
+        if: needs.release.result == 'success'
+        uses: geekyeggo/delete-artifact@v6
+        with:
+          name: |
+            recur-*
+          failOnError: false
+
+      # Artifact cleanup: always runs. Catches anything the release
+      # cleanup left behind (e.g., release failed, or new artifact
+      # names were added later) to keep the Actions storage quota in
+      # check regardless of outcome.
+      - name: Artifact cleanup
+        if: always()
+        uses: geekyeggo/delete-artifact@v6
+        with:
+          name: |
+            *
+          failOnError: false

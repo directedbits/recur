@@ -1,0 +1,38 @@
+baseURL = "https://directedbits.github.io/recur/"
+locale = "en-us"
+title = "recur"
+
+[module]
+  [[module.imports]]
+    path = "github.com/colinwilson/lotusdocs"
+  [[module.imports]]
+    path = "github.com/gohugoio/hugo-mod-bootstrap-scss/v5"
+
+[markup]
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true
+  [markup.highlight]
+    # noClasses=false makes Hugo emit class-based markup so lotusdocs'
+    # Prism stylesheet picks the colors instead of Chroma's inline
+    # styles (which left light-mode fences as blank gray boxes).
+    # codeFences stays true so Hugo's code-fence render hooks (e.g.
+    # lotusdocs' render-codeblock-mermaid.html) still fire.
+    noClasses = false
+
+[params]
+  description = "Configuration-driven automation daemon with a plugin architecture"
+
+  [params.flexsearch]
+    enabled = true
+
+  [params.docs]
+    pathName = "docs"
+    darkMode = true
+    prism = true
+
+  [params.footer]
+    copyright = "MPL 2.0"
+
+  [params.social]
+    github = "directedbits/recur"

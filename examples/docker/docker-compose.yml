@@ -1,0 +1,31 @@
+services:
+  recur:
+    build:
+      context: ../../
+      args:
+        RECUR_PLUGINS: "timer webhook"
+        VERSION: "0.1.0-alpha"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/config.yaml:/home/recur/.recur/config.yaml:ro
+      - recur-state:/home/recur/.recur/state
+    environment:
+      RECUR_CONFIG_PATH: /home/recur/.recur/config.yaml
+      # Uncomment to expose the daemon socket over TCP (for proxy use):
+      # RECUR_SOCKET: "0.0.0.0:8080"
+    restart: unless-stopped
+
+  # Uncomment to run an MQTT broker alongside recur.
+  # Build recur with RECUR_PLUGINS="timer webhook mqtt" to include the MQTT plugin.
+  #
+  # mosquitto:
+  #   image: eclipse-mosquitto:2
+  #   ports:
+  #     - "1883:1883"
+  #   volumes:
+  #     - mosquitto-data:/mosquitto/data
+
+volumes:
+  recur-state:
+  # mosquitto-data:

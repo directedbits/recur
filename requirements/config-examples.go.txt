@@ -1,0 +1,205 @@
+package config_test
+
+import (
+	"fmt"
+
+	"github.com/directedbits/recur/pkg/config"
+)
+
+// DaemonConfig represents the daemon's configuration.
+// Pointer fields allow distinguishing "not set" from "set to zero".
+type DaemonConfig struct {
+	DefaultShell          string
+	ErrorThreshold        int
+	TriggerErrorThreshold *int
+	ActionErrorThreshold  *int
+	ConcurrencyMode       string
+	MaxQueueSize          int
+	Debounce              string
+	ShutdownTimeout       string
+	LogLevel              string
+	SocketAddress         string
+}
+
+// Example_daemonConfig shows how the daemon config uses three layers:
+// hardcoded defaults, config file values, and CLI flag overrides.
+func Example_daemonConfig() {
+	repo := config.NewStore[DaemonConfig]("default", "file", "cli args")
+
+	// Layer 1: hardcoded defaults (always set)
+	repo.Set("default", DaemonConfig{
+		DefaultShell:    "sh",
+		ErrorThreshold:  5,
+		ConcurrencyMode: "queue",
+		MaxQueueSize:    100,
+		Debounce:        "300ms",
+		ShutdownTimeout: "30s",
+	})
+
+	// Layer 2: values from config.yaml (only non-default fields)
+	triggerThreshold := 3
+	repo.Set("file", DaemonConfig{
+		LogLevel:              "debug",
+		TriggerErrorThreshold: &triggerThreshold,
+	})
+
+	// Layer 3: CLI flag override
+	repo.Set("cli args", DaemonConfig{
+		LogLevel: "error",
+	})
+
+	// Get effective config — most specific wins
+	cfg := repo.Get()
+	fmt.Println("DefaultShell:", cfg.DefaultShell)       // "sh" (from default)
+	fmt.Println("LogLevel:", cfg.LogLevel)                // "error" (from cli args)
+	fmt.Println("ErrorThreshold:", cfg.ErrorThreshold)    // 5 (from default)
+	fmt.Println("ConcurrencyMode:", cfg.ConcurrencyMode) // "queue" (from default)
+
+	// Pointer fields: TriggerErrorThreshold was set in "file" layer
+	if cfg.TriggerErrorThreshold != nil {
+		fmt.Println("TriggerErrorThreshold:", *cfg.TriggerErrorThreshold) // 3
+	}
+	// ActionErrorThreshold was never set — remains nil
+	fmt.Println("ActionErrorThreshold:", cfg.ActionErrorThreshold) // <nil>
+}
+
+// Example_triggerOptions shows how trigger options resolve from
+// daemon defaults → group options → trigger-specific options.
+func Example_triggerOptions() {
+	repo := config.NewMapStore("daemon", "group", "trigger")
+
+	// Daemon-level defaults
+	repo.Set("daemon", map[string]any{
+		"concurrency_mode": "queue",
+		"max_queue_size":   100,
+		"debounce":         "300ms",
+		"error_threshold":  5,
+	})
+
+	// Group-level options from recurfile
+	repo.Set("group", map[string]any{
+		"path":      "/data/incoming",
+		"recursive": true,
+		"debounce":  "1s", // override daemon default
+	})
+
+	// Trigger-level options
+	repo.Set("trigger", map[string]any{
+		"filter": []string{"*.csv"},
+	})
+
+	// Effective options — union of all keys, most specific wins
+	opts := repo.Get()
+	fmt.Println("path:", opts["path"])               // "/data/incoming" (from group)
+	fmt.Println("recursive:", opts["recursive"])       // true (from group)
+	fmt.Println("debounce:", opts["debounce"])         // "1s" (group overrides daemon)
+	fmt.Println("filter:", opts["filter"])             // ["*.csv"] (from trigger)
+	fmt.Println("concurrency_mode:", opts["concurrency_mode"]) // "queue" (from daemon)
+}
+
+// Example_pluginConfig shows how plugin config merges manifest
+// defaults with daemon-level plugin namespace config.
+func Example_pluginConfig() {
+	repo := config.NewMapStore("default", "daemon")
+
+	// Plugin manifest defaults
+	repo.Set("default", map[string]any{
+		"broker":   "tcp://localhost:1883",
+		"qos":      0,
+		"keepalive": "30s",
+	})
+
+	// Daemon config: plugins.com.recur.mqtt section
+	repo.Set("daemon", map[string]any{
+		"broker":   "tcp://mqtt.internal:1883",
+		"username": "recur",
+		"password": "secret",
+	})
+
+	cfg := repo.Get()
+	fmt.Println("broker:", cfg["broker"])     // "tcp://mqtt.internal:1883" (daemon overrides)
+	fmt.Println("qos:", cfg["qos"])           // 0 (from default)
+	fmt.Println("keepalive:", cfg["keepalive"]) // "30s" (from default)
+	fmt.Println("username:", cfg["username"])   // "recur" (from daemon, not in defaults)
+}
+
+// Example_inspect shows how Inspect provides the full resolution
+// chain for a field — useful for CLI annotations.
+func Example_inspect() {
+	repo := config.NewStore[DaemonConfig]("default", "file", "cli args")
+
+	repo.Set("default", DaemonConfig{
+		LogLevel: "info",
+	})
+	repo.Set("file", DaemonConfig{
+		LogLevel: "debug",
+	})
+
+	// Inspect shows each layer's contribution, most-specific first
+	layers := repo.Inspect("LogLevel")
+	for _, lv := range layers {
+		status := "undefined"
+		if lv.Defined {
+			status = fmt.Sprintf("%v", lv.Value)
+		}
+		fmt.Printf("  %s: %s\n", lv.Layer, status)
+	}
+	// Output (most-specific first):
+	//   cli args: undefined
+	//   file: debug
+	//   default: info
+	//
+	// The CLI can derive: "debug (set in file)" or "info (inherited from default)"
+}
+
+// Example_configSetDelete shows how CLI config set/delete operations
+// work through the repository.
+func Example_configSetDelete() {
+	repo := config.NewStore[DaemonConfig]("default", "file")
+
+	repo.Set("default", DaemonConfig{
+		DefaultShell:    "sh",
+		ErrorThreshold:  5,
+		ConcurrencyMode: "queue",
+	})
+
+	// "recur config set log_level debug" → SetField on "file" layer
+	repo.SetField("file", "LogLevel", "debug")
+
+	cfg := repo.Get()
+	fmt.Println("LogLevel:", cfg.LogLevel) // "debug"
+
+	// "recur config delete log_level" → ClearLayerField on "file" layer
+	repo.ClearLayerField("file", "LogLevel")
+
+	cfg = repo.Get()
+	fmt.Println("LogLevel after delete:", cfg.LogLevel) // "" (falls back to default, which is empty)
+
+	// Check what the effective value is for a single field
+	val, _ := repo.GetField("ConcurrencyMode")
+	fmt.Println("ConcurrencyMode:", val) // "queue" (from default)
+}
+
+// Example_nestedMapOverlay shows recursive merging of nested maps.
+func Example_nestedMapOverlay() {
+	base := map[string]any{
+		"path": "/data",
+		"options": map[string]any{
+			"recursive": true,
+			"filter":    []string{"*.go"},
+		},
+	}
+	override := map[string]any{
+		"options": map[string]any{
+			"recursive": false,
+			"timeout":   30,
+		},
+	}
+
+	result := config.OverlayMaps(base, override)
+	opts := result["options"].(map[string]any)
+	fmt.Println("path:", result["path"])       // "/data" (from base)
+	fmt.Println("recursive:", opts["recursive"]) // false (override wins)
+	fmt.Println("filter:", opts["filter"])       // ["*.go"] (from base, not in override)
+	fmt.Println("timeout:", opts["timeout"])     // 30 (from override, not in base)
+}

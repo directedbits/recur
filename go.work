@@ -1,0 +1,13 @@
+go 1.25.0
+
+use (
+	.
+	./plugins/calendar
+	./plugins/devicemonitor
+	./pkg/config
+	./plugins/docker
+	./plugins/fileevents
+	./plugins/mqtt
+	./plugins/timer
+	./plugins/webhook
+)

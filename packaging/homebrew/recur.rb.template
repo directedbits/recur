@@ -1,0 +1,59 @@
+class Recur < Formula
+  desc "Cross-platform configuration-driven automation daemon and CLI"
+  homepage "https://github.com/directedbits/recur"
+  license "MPL-2.0"
+  version "${VERSION}"
+
+  on_macos do
+    on_arm do
+      url "https://github.com/directedbits/recur/releases/download/v#{version}/recur-v#{version}-darwin-arm64.tar.gz"
+      sha256 "${SHA256_DARWIN_ARM64}"
+    end
+    on_intel do
+      url "https://github.com/directedbits/recur/releases/download/v#{version}/recur-v#{version}-darwin-amd64.tar.gz"
+      sha256 "${SHA256_DARWIN_AMD64}"
+    end
+  end
+
+  on_linux do
+    on_arm do
+      url "https://github.com/directedbits/recur/releases/download/v#{version}/recur-v#{version}-linux-arm64.tar.gz"
+      sha256 "${SHA256_LINUX_ARM64}"
+    end
+    on_intel do
+      url "https://github.com/directedbits/recur/releases/download/v#{version}/recur-v#{version}-linux-amd64.tar.gz"
+      sha256 "${SHA256_LINUX_AMD64}"
+    end
+  end
+
+  def install
+    bin.install "recur", "recurd"
+    pkgshare.install "plugins" if (buildpath/"plugins").exist?
+  end
+
+  def caveats
+    <<~EOS
+      Plugin binaries are bundled at:
+        #{opt_pkgshare}/plugins
+
+      To enable a plugin:
+        recur plugin install --link #{opt_pkgshare}/plugins/<name>
+
+      To run recur as a background service (launchd on macOS, systemd on Linux):
+        brew services start recur
+
+      Config and state live in ~/.config/recur/.
+    EOS
+  end
+
+  service do
+    run [opt_bin/"recur", "start", "--foreground"]
+    keep_alive true
+    log_path var/"log/recur.log"
+    error_log_path var/"log/recur.err"
+  end
+
+  test do
+    assert_match "recur version", shell_output("#{bin}/recur version")
+  end
+end

@@ -1,0 +1,12 @@
+# Minimal recur configuration for Docker
+#
+# Mount this file into the container:
+#   docker run -v ./config:/home/recur/.recur/config:ro ...
+#
+# Or set RECUR_CONFIG_PATH to point to it.
+
+plugin_dirs:
+  - /home/recur/.recur/plugins
+
+# Override the default Unix socket path if needed (e.g., for TCP proxy).
+# socket_address: "0.0.0.0:8080"

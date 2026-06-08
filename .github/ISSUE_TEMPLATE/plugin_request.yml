@@ -1,0 +1,48 @@
+name: Plugin Request
+description: Suggest a new trigger or action plugin
+labels: [plugin]
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Plugin type
+      options:
+        - Trigger (event source)
+        - Action (side effect)
+        - Both (trigger + action)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What should it do?
+      description: Describe the trigger events or action behavior.
+      placeholder: |
+        Trigger: fires when a new row is added to a Google Sheet.
+        Context variables: SheetName, RowNumber, CellValues.
+    validations:
+      required: true
+
+  - type: textarea
+    id: external_system
+    attributes:
+      label: External system
+      description: What service, protocol, or API does this interact with? Link to docs if available.
+      placeholder: "Google Sheets API v4 — https://developers.google.com/sheets/api"
+
+  - type: textarea
+    id: example
+    attributes:
+      label: Example recurfile
+      description: How would someone use this in a recur.yaml?
+      render: yaml
+      placeholder: |
+        Sheets:
+          on:
+            - type: RowAdded
+              options:
+                spreadsheet_id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
+                sheet: "Sheet1"
+          do:
+            - Shell: "echo 'New row in {{ .SheetName }}'"

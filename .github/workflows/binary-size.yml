@@ -1,0 +1,92 @@
+name: Binary Size
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  size:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.25"
+
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.66.0"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate protobuf (PR)
+        working-directory: api
+        run: buf generate
+
+      - name: Build PR binaries
+        run: |
+          mkdir -p dist/pr
+          CGO_ENABLED=0 go build -o dist/pr/recur ./src/app/recur
+          CGO_ENABLED=0 go build -o dist/pr/recurd ./src/app/recurd
+          for plugin in calendar devicemonitor mqtt timer webhook; do
+            CGO_ENABLED=0 go build -o "dist/pr/$plugin" "./plugins/$plugin/"
+          done
+
+      - name: Build base binaries
+        run: |
+          git checkout "${{ github.event.pull_request.base.sha }}"
+          (cd api && buf generate) 2>/dev/null || true
+          mkdir -p dist/base
+          CGO_ENABLED=0 go build -o dist/base/recur ./src/app/recur 2>/dev/null || true
+          CGO_ENABLED=0 go build -o dist/base/recurd ./src/app/recurd 2>/dev/null || true
+          for plugin in calendar devicemonitor mqtt timer webhook; do
+            CGO_ENABLED=0 go build -o "dist/base/$plugin" "./plugins/$plugin/" 2>/dev/null || true
+          done
+          git checkout "${{ github.event.pull_request.head.sha }}"
+          (cd api && buf generate)
+
+      - name: Compare sizes
+        id: compare
+        run: |
+          echo "## Binary Size Report" > size-report.md
+          echo "" >> size-report.md
+          echo "| Binary | Base | PR | Delta |" >> size-report.md
+          echo "|--------|------|-----|-------|" >> size-report.md
+
+          for bin in recur recurd calendar devicemonitor mqtt timer webhook; do
+            pr_size=0
+            base_size=0
+            if [ -f "dist/pr/$bin" ]; then
+              pr_size=$(stat -c%s "dist/pr/$bin")
+            fi
+            if [ -f "dist/base/$bin" ]; then
+              base_size=$(stat -c%s "dist/base/$bin")
+            fi
+
+            pr_human=$(numfmt --to=iec-i --suffix=B "$pr_size" 2>/dev/null || echo "${pr_size}B")
+            base_human=$(numfmt --to=iec-i --suffix=B "$base_size" 2>/dev/null || echo "${base_size}B")
+
+            delta=$((pr_size - base_size))
+            if [ "$delta" -gt 0 ]; then
+              delta_human="+$(numfmt --to=iec-i --suffix=B "$delta" 2>/dev/null || echo "${delta}B")"
+            elif [ "$delta" -lt 0 ]; then
+              abs_delta=$((-delta))
+              delta_human="-$(numfmt --to=iec-i --suffix=B "$abs_delta" 2>/dev/null || echo "${abs_delta}B")"
+            else
+              delta_human="—"
+            fi
+
+            echo "| $bin | $base_human | $pr_human | $delta_human |" >> size-report.md
+          done
+
+          cat size-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment on PR
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          path: size-report.md

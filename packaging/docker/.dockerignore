@@ -1,0 +1,16 @@
+bin/
+dist/
+*.pb.go
+.git/
+.github/
+.idea/
+.vscode/
+*.exe
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+coverage*.out
+go.work.sum
+watch-download-*
+watch-extract-*
