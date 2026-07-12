@@ -75,7 +75,7 @@ jobs:
           OUTDIR="dist/${{ steps.vars.outputs.artifact }}"
           mkdir -p "$OUTDIR"
           EXT="${{ matrix.ext }}"
-          LDFLAGS="-X github.com/directedbits/recur/src/app/cli.Version=${{ steps.vars.outputs.tag }}"
+          LDFLAGS="-X github.com/directedbits/recur/src/infra/buildinfo.injected=${{ steps.vars.outputs.tag }}"
           go build -ldflags "$LDFLAGS" -o "$OUTDIR/recur${EXT}" ./src/app/recur
           go build -ldflags "$LDFLAGS" -o "$OUTDIR/recurd${EXT}" ./src/app/recurd
 

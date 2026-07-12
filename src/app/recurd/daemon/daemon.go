@@ -15,6 +15,7 @@ import (
 	triggerengine "github.com/directedbits/recur/src/app/recurd/triggerengine"
 	"github.com/directedbits/recur/src/domain/action"
 	"github.com/directedbits/recur/src/domain/trigger"
+	"github.com/directedbits/recur/src/infra/buildinfo"
 	pluginfs "github.com/directedbits/recur/src/infra/fs/plugin"
 	servergrpc "github.com/directedbits/recur/src/infra/grpc/server"
 	statejsonfile "github.com/directedbits/recur/src/infra/jsonfile/state"
@@ -26,8 +27,9 @@ import (
 	recurfileyaml "github.com/directedbits/recur/src/infra/yaml/recurfile"
 )
 
-// Version is the daemon version. Bump alongside releases.
-var Version = "0.1.0-alpha"
+// Version is the daemon version: the release-injected tag, else the module
+// version from `go install`, else this development default.
+var Version = buildinfo.Version("0.1.0-alpha")
 
 // Daemon manages the watch daemon lifecycle.
 type Daemon struct {
