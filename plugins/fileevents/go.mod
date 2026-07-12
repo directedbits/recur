@@ -6,12 +6,12 @@ go 1.25.0
 replace github.com/directedbits/recur => ../..
 
 require (
+	github.com/bmatcuk/doublestar/v4 v4.10.0
 	github.com/directedbits/recur v0.0.0-00010101000000-000000000000
 	github.com/helshabini/fsbroker v1.0.3
 )
 
 require (
-	github.com/bmatcuk/doublestar/v4 v4.10.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
