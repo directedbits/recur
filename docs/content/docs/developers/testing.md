@@ -11,15 +11,17 @@ All test commands use [Task](https://taskfile.dev):
 | Command | What it runs |
 |---------|-------------|
 | `task test` | Unit tests for `./src/...` |
-| `task test:plugins` | Unit tests for all plugins (`./plugins/*/...`) |
 | `task test:e2e` | End-to-end tests (`./test/e2e/`) |
 | `task test:all` | All of the above, sequentially |
+
+Plugins are no longer part of the core repository — each first-party plugin
+lives in its own repository under the
+[directedbits](https://github.com/directedbits) org and is tested there.
 
 Run a single package:
 
 ```sh
 go test ./src/app/trigger/...
-go test ./plugins/timer/...
 ```
 
 ## Unit Test Patterns
@@ -90,7 +92,7 @@ var (
 )
 ```
 
-The MQTT plugin uses the same pattern with `clientFactory` in `plugins/mqtt/client.go`:
+The MQTT plugin uses the same pattern with `clientFactory` in its `client.go` (see the [recur-mqtt](https://github.com/directedbits/recur-mqtt) repository):
 
 ```go
 var clientFactory MQTTClientFactory = defaultClientFactory
@@ -110,7 +112,7 @@ defer func() { clientFactory = origFactory }()
 
 Define a narrow interface for the external dependency, then implement it as a mock in tests.
 
-**DBusConn** (`plugins/devicemonitor/conn.go`):
+**DBusConn** (from the [recur-devicemonitor](https://github.com/directedbits/recur-devicemonitor) repository's `conn.go`):
 
 ```go
 type DBusConn interface {
@@ -119,7 +121,7 @@ type DBusConn interface {
 }
 ```
 
-**MQTTClient** (`plugins/mqtt/client.go`):
+**MQTTClient** (from the [recur-mqtt](https://github.com/directedbits/recur-mqtt) repository's `client.go`):
 
 ```go
 type MQTTClient interface {

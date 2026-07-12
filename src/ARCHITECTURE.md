@@ -69,7 +69,7 @@ relevant `infra/<impl>/` directory.
 | `infra/*/*`     | `domain/*`, other `infra/*/*`, `pkg/*`, third-party                   |
 | `app/<binary>/` | `domain/*`, `infra/*/*`, `pkg/*`, third-party                         |
 | `app/<binary>/main.go` | the binary's own subpackages + `infra` + `domain` (wiring only) |
-| `plugins/*`     | `src/infra/grpc/client` only (the daemon callback client)             |
+| plugin modules | `src/infra/grpc/client` only (the daemon callback client)             |
 
 **`infra` must never import `app`.** **`domain` must never import `app`
 or `infra`.** If you find yourself reaching across, the code is in the
@@ -170,8 +170,9 @@ new code …
 
 ## Plugin isolation
 
-Plugins under `plugins/*/` are standalone Go modules (each has its own
-`go.mod`). The daemon treats them as third-party binaries.
+Plugins are standalone Go modules (each has its own `go.mod`) maintained in
+their own repositories — they are no longer bundled in this repo. The daemon
+treats them as third-party binaries.
 
 **Plugins must not import anything from `src/` except
 `src/infra/grpc/client`** (the daemon callback client). If a plugin
@@ -206,12 +207,10 @@ go list -deps -f '{{.ImportPath}} -> {{join .Imports " "}}' ./src/domain/... \
 go list -deps -f '{{.ImportPath}} -> {{join .Imports " "}}' ./src/infra/... \
   | grep 'github.com/directedbits/recur/src/app/' && echo VIOLATION
 
-# plugins import only infra/grpc/client from src/
-for p in plugins/*/; do
-  (cd "$p" && go list -deps -f '{{.ImportPath}}' ./... \
-    | grep 'github.com/directedbits/recur/src/' \
-    | grep -v 'src/infra/grpc/client' && echo "VIOLATION in $p")
-done
 ```
 
-All three commands should print nothing.
+Both commands should print nothing.
+
+The plugin import rule (plugins import only `src/infra/grpc/client` from
+`src/`) is now enforced in each plugin's own repository, since first-party
+plugins are no longer bundled here.

@@ -6,9 +6,9 @@ description: "Step-by-step guide to creating a new trigger or action plugin"
 
 This tutorial walks through creating a new trigger plugin from scratch, using the **timer** plugin as the reference implementation. By the end you will have a working plugin that the daemon discovers, spawns, and receives events from.
 
-## Step 1: Create the Directory and Manifest
+## Step 1: Create the Repository and Manifest
 
-Create `plugins/<name>/manifest.yaml`. The manifest tells the daemon what trigger (and/or action) types your plugin provides.
+Create a repository for your plugin and add a `manifest.yaml` at its root. The manifest tells the daemon what trigger (and/or action) types your plugin provides.
 
 ```yaml
 name: timer
@@ -66,24 +66,23 @@ Key fields:
 
 ## Step 2: Set Up the Go Module
 
-```sh
-cd plugins/<name>
-go mod init github.com/directedbits/recur/plugins/<name>
-```
-
-Add the main module as a dependency (for the gRPC client):
+Plugins are standalone Go modules maintained in their own repositories.
+Initialize the module in your plugin repo:
 
 ```sh
-go mod edit -require github.com/directedbits/recur@v0.0.0
-go mod edit -replace github.com/directedbits/recur=../../
+go mod init github.com/<you>/recur-<name>
 ```
 
-Then add your plugin to the workspace:
+Add recur as a dependency (for the gRPC callback client):
 
 ```sh
-# In the repo root go.work file, add:
-# use ./plugins/<name>
+go mod edit -require github.com/directedbits/recur@latest
+go mod tidy
 ```
+
+While developing against unreleased daemon changes, you can point the
+dependency at a local checkout of recur with a `replace` directive or a
+`go.work` file that lists both modules.
 
 ## Step 3: Implement parseInput
 
@@ -251,32 +250,27 @@ Key points:
 - **Context keys must match the manifest.** The daemon validates context keys in `ReportTriggerEvent` against your manifest's `context` definitions.
 - **Handle SIGTERM gracefully.** The daemon sends SIGTERM first, then SIGKILL after the shutdown timeout (default 3 seconds).
 
-## Step 6: Add to Taskfile.yml
+## Step 6: Build and Install
 
-Add a build task for your plugin and include it in the plugin test task:
-
-```yaml
-build:<name>:
-  desc: Build the <name> plugin
-  cmds:
-    - go build -o {{.BIN_DIR}}/plugins/<name>/<name> ./plugins/<name>/
-    - cp ./plugins/<name>/manifest.yaml {{.BIN_DIR}}/plugins/<name>/
-
-test:plugins:
-  cmds:
-    - go test ./plugins/<name>/... # add to existing list
-```
-
-## Step 7: Build and Install
+Build the binary and place it alongside the manifest in a directory, then
+install that directory:
 
 ```sh
-task build:<name>
-recur install ./bin/plugins/<name>
+mkdir -p ./bin/<name>
+go build -o ./bin/<name>/<name> .
+cp ./manifest.yaml ./bin/<name>/
+recur install ./bin/<name>
 ```
 
 Or copy the plugin directory (binary + manifest.yaml) to `~/.config/recur/plugins/<name>/`.
 
-## Step 8: Write Tests
+For distribution, publish a release archive named
+`<name>-<tag>-<os>-<arch>.tar.gz` (binary + `manifest.yaml`) so users can
+`recur plugin install <release-url>` directly. See the existing first-party
+plugin repositories under the [directedbits](https://github.com/directedbits)
+org for a reference build/release setup.
+
+## Step 7: Write Tests
 
 Follow the two-file convention:
 
@@ -335,9 +329,9 @@ func TestStartMySource_Fires(t *testing.T) {
 
 Use table-driven tests for validation edge cases (invalid config, missing required fields, etc.).
 
-## Step 9: Create a README
+## Step 8: Create a README
 
-Add a `plugins/<name>/README.md` with Hugo front matter if the plugin should appear in the docs site, or a plain README for developer reference.
+Add a `README.md` to your plugin repository for developer reference. (First-party plugins now live in their own repositories under the [directedbits](https://github.com/directedbits) org rather than being bundled in core.)
 
 ## Action Plugins
 
@@ -353,7 +347,7 @@ Action plugins are simpler than trigger plugins. They are short-lived processes:
    {"success": true, "output": "published to topic/foo", "error": ""}
    ```
 
-No gRPC callback is needed -- the daemon reads stdout after the process exits. The `plugins/mqtt` plugin demonstrates a dual trigger+action plugin: it checks whether `trigger_type` or `action_type` is present in stdin to decide which mode to run in.
+No gRPC callback is needed -- the daemon reads stdout after the process exits. The [recur-mqtt](https://github.com/directedbits/recur-mqtt) plugin demonstrates a dual trigger+action plugin: it checks whether `trigger_type` or `action_type` is present in stdin to decide which mode to run in.
 
 Environment variables available to action plugins:
 
