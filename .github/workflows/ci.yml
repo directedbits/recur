@@ -7,6 +7,28 @@ on:
     branches: [main]
 
 jobs:
+  protobuf:
+    name: Protobuf up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: bufbuild/buf-setup-action@v1
+        with:
+          version: "1.66.0"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate protobuf
+        working-directory: api
+        run: buf generate
+
+      - name: Check generated protobuf is committed
+        run: |
+          if ! git diff --exit-code -- 'src/infra/grpc/**/*.pb.go'; then
+            echo "::error::Generated protobuf is out of date. Run 'cd api && buf generate' and commit the result."
+            exit 1
+          fi
+
   test:
     runs-on: ubuntu-latest
     steps:
