@@ -50,9 +50,6 @@ jobs:
       - name: Unit tests
         run: go test ./src/... ./pkg/...
 
-      - name: Plugin tests
-        run: go test ./plugins/calendar/... ./plugins/devicemonitor/... ./plugins/docker/... ./plugins/mqtt/... ./plugins/timer/... ./plugins/webhook/...
-
       - name: Build binaries
         run: |
           go build -o bin/recur ./src/app/recur

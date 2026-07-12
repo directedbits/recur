@@ -33,9 +33,6 @@ jobs:
           mkdir -p dist/pr
           CGO_ENABLED=0 go build -o dist/pr/recur ./src/app/recur
           CGO_ENABLED=0 go build -o dist/pr/recurd ./src/app/recurd
-          for plugin in calendar devicemonitor mqtt timer webhook; do
-            CGO_ENABLED=0 go build -o "dist/pr/$plugin" "./plugins/$plugin/"
-          done
 
       - name: Build base binaries
         run: |
@@ -44,9 +41,6 @@ jobs:
           mkdir -p dist/base
           CGO_ENABLED=0 go build -o dist/base/recur ./src/app/recur 2>/dev/null || true
           CGO_ENABLED=0 go build -o dist/base/recurd ./src/app/recurd 2>/dev/null || true
-          for plugin in calendar devicemonitor mqtt timer webhook; do
-            CGO_ENABLED=0 go build -o "dist/base/$plugin" "./plugins/$plugin/" 2>/dev/null || true
-          done
           git checkout "${{ github.event.pull_request.head.sha }}"
           (cd api && buf generate)
 
@@ -58,7 +52,7 @@ jobs:
           echo "| Binary | Base | PR | Delta |" >> size-report.md
           echo "|--------|------|-----|-------|" >> size-report.md
 
-          for bin in recur recurd calendar devicemonitor mqtt timer webhook; do
+          for bin in recur recurd; do
             pr_size=0
             base_size=0
             if [ -f "dist/pr/$bin" ]; then

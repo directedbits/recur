@@ -25,7 +25,7 @@ jobs:
         run: buf generate
 
       - name: Go vet
-        run: go vet ./src/... ./plugins/calendar/... ./plugins/devicemonitor/... ./plugins/mqtt/... ./plugins/timer/... ./plugins/webhook/...
+        run: go vet ./src/... ./pkg/...
 
       - name: Install govulncheck
         run: go install golang.org/x/vuln/cmd/govulncheck@latest

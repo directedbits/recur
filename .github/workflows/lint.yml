@@ -29,7 +29,7 @@ jobs:
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.12.2
-          args: ./src/... ./plugins/calendar/... ./plugins/devicemonitor/... ./plugins/mqtt/... ./plugins/timer/... ./plugins/webhook/...
+          args: ./src/... ./pkg/...
 
   proto-lint:
     runs-on: ubuntu-latest
