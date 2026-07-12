@@ -80,7 +80,7 @@ See the [recurfile format documentation](docs/content/docs/configuration/recurfi
 | [**devicemonitor**](https://github.com/directedbits/recur-devicemonitor) | `DeviceConnected`, `DeviceDisconnected` | — | USB/device hotplug (Linux + Windows) |
 | [**docker**](https://github.com/directedbits/recur-docker) | `ContainerStarted`, `ContainerStopped`, `HealthChanged` | `ContainerStart`, `ContainerStop`, `ContainerRestart` | Docker container lifecycle |
 
-The first-party plugins above are now maintained in their own repositories under the [directedbits](https://github.com/directedbits) org. Install one from its release archive with `recur plugin install <release-archive-url>` (releases live at `https://github.com/directedbits/recur-<plugin>/releases`). Remote installs require the host to be allowed first: `recur config set allowed_hosts github.com`.
+The first-party plugins above are now maintained in their own repositories under the [directedbits](https://github.com/directedbits) org. Install one from its release archive with `recur install <release-archive-url>` (releases live at `https://github.com/directedbits/recur-<plugin>/releases`). Remote installs require the host to be allowed first: `recur config set allowed_hosts github.com`.
 
 ## How It Works
 

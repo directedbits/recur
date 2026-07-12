@@ -10,7 +10,7 @@ Download the latest release for your platform from the [Releases](https://github
 
 Available platforms: Linux (amd64, arm64, armv7, i386), macOS (amd64, arm64), Windows (amd64, arm64).
 
-Each release archive contains `recur` (CLI) and `recurd` (daemon). Plugins are distributed separately — the first-party plugins live in their own repositories under the [directedbits](https://github.com/directedbits) org and are installed via `recur plugin install` (see [Plugins](../plugins/)).
+Each release archive contains `recur` (CLI) and `recurd` (daemon). Plugins are distributed separately — the first-party plugins live in their own repositories under the [directedbits](https://github.com/directedbits) org and are installed via `recur install` (see [Plugins](../plugins/)).
 
 ## Using Go
 
@@ -39,7 +39,7 @@ archives. Install one from its release URL:
 
 ```sh
 recur config set allowed_hosts github.com
-recur plugin install https://github.com/directedbits/recur-timer/releases/download/v1.0.0/timer-v1.0.0-linux-amd64.tar.gz
+recur install https://github.com/directedbits/recur-timer/releases/download/v0.1.0/timer-v0.1.0-linux-amd64.tar.gz
 ```
 
 See [Plugins](../plugins/) for the full catalog and installation details.

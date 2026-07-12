@@ -266,7 +266,7 @@ Or copy the plugin directory (binary + manifest.yaml) to `~/.config/recur/plugin
 
 For distribution, publish a release archive named
 `<name>-<tag>-<os>-<arch>.tar.gz` (binary + `manifest.yaml`) so users can
-`recur plugin install <release-url>` directly. See the existing first-party
+`recur install <release-url>` directly. See the existing first-party
 plugin repositories under the [directedbits](https://github.com/directedbits)
 org for a reference build/release setup.
 

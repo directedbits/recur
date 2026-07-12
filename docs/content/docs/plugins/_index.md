@@ -25,7 +25,7 @@ The first-party plugins listed below are maintained in their own repositories un
 Each plugin repo publishes release assets named `<plugin>-<tag>-<os>-<arch>.tar.gz`. Install one directly from its release URL:
 
 ```sh
-recur plugin install https://github.com/directedbits/recur-timer/releases/download/v1.0.0/timer-v1.0.0-linux-amd64.tar.gz
+recur install https://github.com/directedbits/recur-timer/releases/download/v0.1.0/timer-v0.1.0-linux-amd64.tar.gz
 ```
 
 Remote installs require the host to be in the `allowed_hosts` config list first:
