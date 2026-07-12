@@ -32,9 +32,8 @@ type sliceMapConfig struct {
 	Labels map[string]string
 }
 
-func intPtr(v int) *int       { return &v }
-func boolPtr(v bool) *bool    { return &v }
-func strPtr(v string) *string { return &v }
+func intPtr(v int) *int    { return &v }
+func boolPtr(v bool) *bool { return &v }
 
 func TestOverlay_NoLayers(t *testing.T) {
 	base := simpleConfig{Name: "base", Count: 5, Flag: true}

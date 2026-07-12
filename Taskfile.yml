@@ -106,7 +106,7 @@ tasks:
   lint:go:
     desc: Run golangci-lint over the Go module
     cmds:
-      - '{{.GOPATH}}/bin/golangci-lint run ./src/... ./plugins/calendar/... ./plugins/devicemonitor/... ./plugins/mqtt/... ./plugins/timer/... ./plugins/webhook/...'
+      - '{{.GOPATH}}/bin/golangci-lint run ./src/... ./pkg/... ./plugins/calendar/... ./plugins/devicemonitor/... ./plugins/mqtt/... ./plugins/timer/... ./plugins/webhook/...'
 
   lint:proto:
     desc: Lint protobuf definitions
