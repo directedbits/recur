@@ -23,8 +23,10 @@ dist/
 /plugins/timer/timer
 /plugins/webhook/webhook
 
-# Generated protobuf
-*.pb.go
+# Generated protobuf (*.pb.go) is committed, not ignored: Go distributes
+# modules as source and never runs `buf generate` on the consumer side, so
+# `go install`/`go get` needs the generated code present in the tagged tree.
+# Regenerate with `buf generate` (see api/buf.gen.yaml); CI checks for drift.
 
 # IDE
 .idea/

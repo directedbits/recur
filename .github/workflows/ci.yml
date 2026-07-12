@@ -25,6 +25,13 @@ jobs:
         working-directory: api
         run: buf generate
 
+      - name: Check generated protobuf is committed
+        run: |
+          if ! git diff --exit-code -- 'src/infra/grpc/**/*.pb.go'; then
+            echo "::error::Generated protobuf is out of date. Run 'cd api && buf generate' and commit the result."
+            exit 1
+          fi
+
       - name: Unit tests
         run: go test ./src/...
 
