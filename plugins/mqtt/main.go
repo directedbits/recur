@@ -14,8 +14,7 @@ import (
 	"strconv"
 	"syscall"
 
-	clientgrpc "github.com/directedbits/recur/src/infra/grpc/client"
-	recurv1 "github.com/directedbits/recur/src/infra/grpc/recur/v1"
+	sdk "github.com/directedbits/recur/pkg/plugin-sdk"
 )
 
 // pluginInput is the JSON payload read from stdin.
@@ -97,7 +96,7 @@ func runTrigger(input *pluginInput) {
 
 	log.Printf("subscribed: broker=%s topic=%s qos=%d", cfg.Broker, cfg.Topic, cfg.QoS)
 
-	client, err := clientgrpc.Connect(socketPath)
+	client, err := sdk.Connect(socketPath)
 	if err != nil {
 		log.Fatalf("connecting to daemon: %v", err)
 	}
@@ -122,7 +121,7 @@ func runTrigger(input *pluginInput) {
 				"MessageID": strconv.FormatUint(uint64(msg.MessageID), 10),
 			}
 
-			resp, err := client.Service.ReportTriggerEvent(context.Background(), &recurv1.ReportTriggerEventRequest{
+			resp, err := client.Service.ReportTriggerEvent(context.Background(), &sdk.ReportTriggerEventRequest{
 				TriggerId: triggerID,
 				Context:   ctxVars,
 			})
