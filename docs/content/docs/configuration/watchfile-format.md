@@ -79,13 +79,13 @@ WebhookLog:
     - shell: "echo '{{ .RequestMethod }} {{ .RequestPath }} from {{ .RemoteAddr }}' >> events.log"
 ```
 
-Available variables are declared in the trigger's plugin manifest -- see each plugin's documentation for its context variables:
+Available variables are declared in the trigger's plugin manifest -- see each plugin's repository for its context variables:
 
-- [timer](../plugins/timer/)
-- [webhook](../plugins/webhook/)
-- [mqtt](../plugins/mqtt/)
-- [calendar](../plugins/calendar/)
-- [devicemonitor](../plugins/devicemonitor/)
+- [timer](https://github.com/directedbits/recur-timer)
+- [webhook](https://github.com/directedbits/recur-webhook)
+- [mqtt](https://github.com/directedbits/recur-mqtt)
+- [calendar](https://github.com/directedbits/recur-calendar)
+- [devicemonitor](https://github.com/directedbits/recur-devicemonitor)
 
 For convenience, when an action is fired via `recur test`, the special variable `{{ .Test }}` is provided with the boolean value `true`.
 

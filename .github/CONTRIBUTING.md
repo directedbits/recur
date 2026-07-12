@@ -25,20 +25,13 @@ Run the platform setup script to install the tools automatically:
 ```sh
 task build          # Build recur + recurd
 task test           # Unit tests
-task test:plugins   # Plugin unit tests
 task test:e2e       # End-to-end tests
 task test:all       # All of the above
 ```
 
-Plugins build individually:
-
-```sh
-task build:timer
-task build:webhook
-task build:calendar
-task build:devicemonitor
-task build:mqtt
-```
+The first-party plugins are no longer part of this repository — they are
+built, tested, and released from their own repositories under the
+[directedbits](https://github.com/directedbits) org.
 
 Protobuf generation:
 
@@ -72,7 +65,6 @@ src/
     terminal/display/
     secret/{env,file,keyring,composite}/
     fs/{plugin,atomicfile}/
-plugins/                   External trigger/action plugins (each a standalone binary)
 requirements/              Design specs
 test/
   e2e/                     End-to-end tests
@@ -196,7 +188,6 @@ directly will be clobbered by `task docs:sync` on the next build.
 |------|--------|
 | `docs/content/docs/contributing/_index.md` | `.github/CONTRIBUTING.md` |
 | `docs/content/docs/deployment/docker.md`   | `examples/docker/README.md` |
-| `docs/content/docs/plugins/<name>.md`      | `plugins/<name>/README.md` |
 
 **Edit `docs/content/docs/` directly** for anything else — the
 homepage, getting started, configuration, CLI, reference, deployment

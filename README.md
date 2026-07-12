@@ -6,6 +6,8 @@
 
 Recur is a cross-platform configuration-driven automation toolset consisting of a daemon and CLI supported by a flexible plugin system. It is written in Go and runs locally on the system.
 
+**Official documentation: https://directedbits.github.io/recur/**
+
 Simply define what events to wait for — file changes, cron schedules, webhooks, MQTT messages, calendar events, USB devices, or Docker containers — and how to respond.
 
 ## Install
@@ -70,13 +72,15 @@ See the [recurfile format documentation](docs/content/docs/configuration/recurfi
 
 | Plugin | Triggers | Actions | Description |
 |--------|----------|---------|-------------|
-| [**fileevents**](plugins/fileevents/) | `FileCreated`, `FileModified`, `FileDeleted`, `FileMoved`, `FileAttributeChanged` | — | File system event monitoring |
-| [**timer**](plugins/timer/) | `cron`, `interval` | — | Cron schedule and interval triggers |
-| [**webhook**](plugins/webhook/) | `WebhookReceived` | — | HTTP/HTTPS webhook receiver with HMAC verification |
-| [**mqtt**](plugins/mqtt/) | `MessageReceived` | `publish` | MQTT subscribe and publish |
-| [**calendar**](plugins/calendar/) | `EventUpcoming`, `EventStarted`, `EventEnded` | — | iCal/ICS calendar polling |
-| [**devicemonitor**](plugins/devicemonitor/) | `DeviceConnected`, `DeviceDisconnected` | — | USB/device hotplug (Linux + Windows) |
-| [**docker**](plugins/docker/) | `ContainerStarted`, `ContainerStopped`, `HealthChanged` | `ContainerStart`, `ContainerStop`, `ContainerRestart` | Docker container lifecycle |
+| [**fileevents**](https://github.com/directedbits/recur-fileevents) | `FileCreated`, `FileModified`, `FileDeleted`, `FileMoved`, `FileAttributeChanged` | — | File system event monitoring |
+| [**timer**](https://github.com/directedbits/recur-timer) | `cron`, `interval` | — | Cron schedule and interval triggers |
+| [**webhook**](https://github.com/directedbits/recur-webhook) | `WebhookReceived` | — | HTTP/HTTPS webhook receiver with HMAC verification |
+| [**mqtt**](https://github.com/directedbits/recur-mqtt) | `MessageReceived` | `publish` | MQTT subscribe and publish |
+| [**calendar**](https://github.com/directedbits/recur-calendar) | `EventUpcoming`, `EventStarted`, `EventEnded` | — | iCal/ICS calendar polling |
+| [**devicemonitor**](https://github.com/directedbits/recur-devicemonitor) | `DeviceConnected`, `DeviceDisconnected` | — | USB/device hotplug (Linux + Windows) |
+| [**docker**](https://github.com/directedbits/recur-docker) | `ContainerStarted`, `ContainerStopped`, `HealthChanged` | `ContainerStart`, `ContainerStop`, `ContainerRestart` | Docker container lifecycle |
+
+The first-party plugins above are now maintained in their own repositories under the [directedbits](https://github.com/directedbits) org. Install one from its release archive with `recur install <release-archive-url>` (releases live at `https://github.com/directedbits/recur-<plugin>/releases`). Remote installs require the host to be allowed first: `recur config set allowed_hosts github.com`.
 
 ## How It Works
 

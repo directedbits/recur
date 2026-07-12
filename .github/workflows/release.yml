@@ -79,25 +79,6 @@ jobs:
           go build -ldflags "$LDFLAGS" -o "$OUTDIR/recur${EXT}" ./src/app/recur
           go build -ldflags "$LDFLAGS" -o "$OUTDIR/recurd${EXT}" ./src/app/recurd
 
-      - name: Build plugins
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          GOARM: ${{ matrix.goarm }}
-          CGO_ENABLED: "0"
-        run: |
-          OUTDIR="dist/${{ steps.vars.outputs.artifact }}/plugins"
-          PLUGINS="calendar docker mqtt timer webhook"
-          if [ "${{ matrix.goos }}" = "linux" ] || [ "${{ matrix.goos }}" = "windows" ]; then
-            PLUGINS="$PLUGINS devicemonitor"
-          fi
-          for plugin in $PLUGINS; do
-            mkdir -p "$OUTDIR/$plugin"
-            EXT="${{ matrix.ext }}"
-            go build -o "$OUTDIR/$plugin/${plugin}${EXT}" "./plugins/$plugin/"
-            cp "./plugins/$plugin/manifest.yaml" "$OUTDIR/$plugin/"
-          done
-
       - name: Smoke test (linux-amd64 only)
         if: matrix.goos == 'linux' && matrix.goarch == 'amd64'
         run: |
@@ -112,10 +93,6 @@ jobs:
           echo "### Binary sizes (${{ steps.vars.outputs.suffix }})" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           ls -lh "$OUTDIR/recur${EXT}" "$OUTDIR/recurd${EXT}" >> "$GITHUB_STEP_SUMMARY"
-          for f in "$OUTDIR"/plugins/*/; do
-            plugin=$(basename "$f")
-            ls -lh "$f${plugin}${EXT}" >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
-          done
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create tarball

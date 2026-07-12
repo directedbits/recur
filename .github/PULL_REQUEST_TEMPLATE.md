@@ -34,9 +34,8 @@
       fixes).
 - [ ] User docs updated for user-observable changes (see
       [CONTRIBUTING § Documentation](.github/CONTRIBUTING.md#documentation)
-      for triggers). **Some pages are synced**: plugin docs come from
-      `plugins/<name>/README.md`, contributing from
-      `.github/CONTRIBUTING.md`, the docker example from
+      for triggers). **Some pages are synced**: contributing comes
+      from `.github/CONTRIBUTING.md`, the docker example from
       `examples/docker/README.md` — edit the source and run
       `task docs:sync`. Everything else: edit `docs/content/docs/`
       directly.

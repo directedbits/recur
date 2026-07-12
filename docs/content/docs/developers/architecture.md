@@ -64,10 +64,13 @@ src/
     fs/
       plugin/                     # package pluginfs — discovery, install, archive
       atomicfile/                 # crash-safe write helper
-plugins/                          # external trigger/action plugins (standalone Go modules)
-  calendar/, devicemonitor/, docker/, mqtt/, timer/, webhook/, fileevents/
 test/e2e/                         # end-to-end tests
 ```
+
+External trigger/action plugins are standalone Go modules and are no longer
+part of this repository. The first-party plugins (calendar, devicemonitor,
+docker, mqtt, timer, webhook, fileevents) each live in their own repository
+under the [directedbits](https://github.com/directedbits) org.
 
 The codebase follows a strict inward dependency flow. See
 [`src/ARCHITECTURE.md`](https://github.com/directedbits/recur/blob/main/src/ARCHITECTURE.md)
@@ -91,10 +94,11 @@ Summary:
   suffix (`recurfileyaml`, `processos`, `displayterminal`) so call
   sites self-document the ACL boundary. May import `domain/` but
   never `app/`.
-- **plugins/** are standalone Go modules treated as third-party. Their
-  only allowed `src/` import is `src/infra/grpc/client` (the daemon
-  callback). If a plugin needs a helper from `src/infra/`, it copies
-  the helper instead of importing across the module boundary.
+- **Plugins** are standalone Go modules treated as third-party, maintained
+  in their own repositories. Their only allowed `src/` import is
+  `src/infra/grpc/client` (the daemon callback). If a plugin needs a helper
+  from `src/infra/`, it copies the helper instead of importing across the
+  module boundary.
 
 ## Request Flow
 
@@ -250,7 +254,7 @@ When an external plugin driver is created, it receives a config snapshot from `C
 | Change action execution | `src/app/daemon/action.go` -- `shellExecutor` or `pluginExecutor` |
 | Modify config handling | `src/infra/config/` |
 | Change recurfile parsing | `src/infra/recurfile/` |
-| Add a new plugin | `plugins/<name>/` -- see [Writing a Plugin](../writing-a-plugin/) |
+| Add a new plugin | a separate repository -- see [Writing a Plugin](../writing-a-plugin/) |
 | Modify plugin discovery | `src/infra/plugin/` |
 | Change entity domain types | `src/domain/<entity>/` |
 | Update gRPC client/server wrappers | `src/infra/grpc/` (non-generated code) |

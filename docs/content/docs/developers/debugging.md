@@ -97,7 +97,7 @@ You can test a plugin binary outside the daemon by providing the expected stdin 
 ```sh
 echo '{"trigger_type":"interval","options":{"every":"5s"},"config":{}}' | \
   RECUR_SOCKET=/tmp/recur.sock RECUR_TRIGGER_ID=test123 RECUR_TRIGGER_TYPE=interval \
-  ./bin/plugins/timer/timer
+  ~/.config/recur/plugins/timer/timer
 ```
 
 The plugin will start and attempt to connect to the daemon socket. Without a running daemon, the gRPC dial will fail -- but you can verify that parsing and event source startup work correctly from the stderr output.

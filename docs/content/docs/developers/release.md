@@ -53,26 +53,12 @@ Each platform tarball contains:
 recur-v0.2.0-linux-amd64/
   recur                          # CLI binary
   recurd                         # daemon binary
-  plugins/
-    calendar/
-      calendar                  # plugin binary
-      manifest.yaml
-    docker/
-      docker
-      manifest.yaml
-    mqtt/
-      mqtt
-      manifest.yaml
-    timer/
-      timer
-      manifest.yaml
-    webhook/
-      webhook
-      manifest.yaml
-    devicemonitor/              # linux + windows only
-      devicemonitor
-      manifest.yaml
 ```
+
+The core release archive no longer bundles plugins. The first-party plugins
+are released independently from their own repositories under the
+[directedbits](https://github.com/directedbits) org, each publishing its own
+platform archives (`<plugin>-<tag>-<os>-<arch>.tar.gz`).
 
 ## Version Injection
 
@@ -84,11 +70,14 @@ The release workflow injects the version tag into the binaries via Go linker fla
 
 This sets the `cli.Version` variable used by `recur version`.
 
-## Platform-Specific Plugins
+## Plugins
 
-The **devicemonitor** plugin (D-Bus on Linux, WMI on Windows) is only built for `linux` and `windows` targets. It is excluded from `darwin` builds because it has no macOS implementation.
-
-All other plugins (calendar, docker, mqtt, timer, webhook) are built for every platform.
+Plugins are no longer part of the core release. Each first-party plugin is
+built and released from its own repository under the
+[directedbits](https://github.com/directedbits) org. Note that the
+**devicemonitor** plugin (D-Bus on Linux, WMI on Windows) has no macOS
+implementation and is therefore only released for `linux` and `windows`
+targets.
 
 ## Smoke Tests
 

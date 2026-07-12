@@ -2,10 +2,10 @@
 # Mirror source-of-truth READMEs into the Hugo content tree.
 #
 # Some doc pages are direct mirrors of READMEs that live next to the
-# code they document — plugin READMEs at plugins/<name>/README.md,
-# contributor guide at .github/CONTRIBUTING.md, docker example at
-# examples/docker/README.md. Edit only the SOURCE files; this script
-# runs in the docs:sync Task and is invoked by docs:serve / docs.
+# code they document — the contributor guide at .github/CONTRIBUTING.md
+# and the docker example at examples/docker/README.md. Edit only the
+# SOURCE files; this script runs in the docs:sync Task and is invoked by
+# docs:serve / docs. (Plugin docs now live in their own repositories.)
 #
 # Also strips the duplicate "# Title" H1 that immediately follows
 # the front matter, since lotusdocs already renders the title from
@@ -19,13 +19,6 @@ cd "$(dirname "$0")/.."
 mappings=(
   ".github/CONTRIBUTING.md|docs/content/docs/contributing/_index.md"
   "examples/docker/README.md|docs/content/docs/deployment/docker.md"
-  "plugins/calendar/README.md|docs/content/docs/plugins/calendar.md"
-  "plugins/devicemonitor/README.md|docs/content/docs/plugins/devicemonitor.md"
-  "plugins/docker/README.md|docs/content/docs/plugins/docker.md"
-  "plugins/fileevents/README.md|docs/content/docs/plugins/fileevents.md"
-  "plugins/mqtt/README.md|docs/content/docs/plugins/mqtt.md"
-  "plugins/timer/README.md|docs/content/docs/plugins/timer.md"
-  "plugins/webhook/README.md|docs/content/docs/plugins/webhook.md"
 )
 
 for pair in "${mappings[@]}"; do

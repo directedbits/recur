@@ -10,7 +10,7 @@ Download the latest release for your platform from the [Releases](https://github
 
 Available platforms: Linux (amd64, arm64, armv7, i386), macOS (amd64, arm64), Windows (amd64, arm64).
 
-Each release archive contains `recur` (CLI), `recurd` (daemon), and a `plugins/` directory with bundled plugins.
+Each release archive contains `recur` (CLI) and `recurd` (daemon). Plugins are distributed separately — the first-party plugins live in their own repositories under the [directedbits](https://github.com/directedbits) org and are installed via `recur install` (see [Plugins](../plugins/)).
 
 ## Using Go
 
@@ -31,24 +31,18 @@ cd recur
 task build          # outputs bin/recur and bin/recurd
 ```
 
-### Building plugins
+### Installing plugins
 
-Bundled plugins build individually:
-
-```sh
-task build:timer
-task build:webhook
-task build:mqtt
-task build:calendar
-task build:devicemonitor
-task build:docker
-```
-
-Install a plugin into the daemon's plugin directory:
+The first-party plugins are maintained in their own repositories under the
+[directedbits](https://github.com/directedbits) org and published as release
+archives. Install one from its release URL:
 
 ```sh
-recur install ./bin/timer/
+recur config set allowed_hosts github.com
+recur install https://github.com/directedbits/recur-timer/releases/download/v0.1.0/timer-v0.1.0-linux-amd64.tar.gz
 ```
+
+See [Plugins](../plugins/) for the full catalog and installation details.
 
 ### Protobuf generation
 
