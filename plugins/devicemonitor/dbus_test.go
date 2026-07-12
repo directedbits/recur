@@ -377,6 +377,7 @@ func TestParseInterfacesAdded_BlockDevice(t *testing.T) {
 	}
 	if event == nil {
 		t.Fatal("expected event, got nil")
+		return
 	}
 	if event.DeviceName != "sdb1" {
 		t.Errorf("DeviceName = %q, want %q", event.DeviceName, "sdb1")
@@ -412,6 +413,7 @@ func TestParseInterfacesAdded_Drive(t *testing.T) {
 	}
 	if event == nil {
 		t.Fatal("expected event, got nil")
+		return
 	}
 	if event.DeviceName != "WD_Elements_1234" {
 		t.Errorf("DeviceName = %q, want %q", event.DeviceName, "WD_Elements_1234")
@@ -443,6 +445,7 @@ func TestParseInterfacesAdded_USBDrive(t *testing.T) {
 	}
 	if event == nil {
 		t.Fatal("expected event, got nil")
+		return
 	}
 	if event.DeviceType != "drive" {
 		t.Errorf("DeviceType = %q, want drive (kind-of-object axis)", event.DeviceType)
@@ -479,6 +482,7 @@ func TestParseInterfacesAdded_PartitionUsesLookupForBus(t *testing.T) {
 	}
 	if event == nil {
 		t.Fatal("expected event")
+		return
 	}
 	if event.DeviceType != "block" {
 		t.Errorf("DeviceType = %q, want block (no reclassification)", event.DeviceType)
@@ -517,6 +521,7 @@ func TestParseInterfacesAdded_LoopDeviceHasLoopBusAndEmptyDrivePath(t *testing.T
 	}
 	if event == nil {
 		t.Fatal("expected event")
+		return
 	}
 	if event.DeviceType != "block" {
 		t.Errorf("DeviceType = %q, want block", event.DeviceType)
@@ -865,6 +870,7 @@ func TestParseInterfacesAdded_WithMountPoint(t *testing.T) {
 	}
 	if event == nil {
 		t.Fatal("expected event, got nil")
+		return
 	}
 	if event.MountPoint != "/mnt/usb" {
 		t.Errorf("MountPoint = %q, want %q", event.MountPoint, "/mnt/usb")
@@ -948,6 +954,7 @@ func TestParseInterfacesRemoved_BlockDevice(t *testing.T) {
 	}
 	if event == nil {
 		t.Fatal("expected event, got nil")
+		return
 	}
 	if event.DeviceName != "sdb1" {
 		t.Errorf("DeviceName = %q, want %q", event.DeviceName, "sdb1")
@@ -975,6 +982,7 @@ func TestParseInterfacesRemoved_Drive(t *testing.T) {
 	}
 	if event == nil {
 		t.Fatal("expected event, got nil")
+		return
 	}
 	if event.DeviceType != "drive" {
 		t.Errorf("DeviceType = %q, want %q", event.DeviceType, "drive")
