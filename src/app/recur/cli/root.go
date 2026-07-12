@@ -2,11 +2,13 @@
 package cli
 
 import (
+	"github.com/directedbits/recur/src/infra/buildinfo"
 	"github.com/spf13/cobra"
 )
 
-// Version is the CLI version. Bump alongside releases.
-var Version = "0.1.0-alpha"
+// Version is the CLI version: the release-injected tag, else the module version
+// from `go install`, else this development default.
+var Version = buildinfo.Version("0.1.0-alpha")
 
 // NewRootCmd creates the root `recur` command.
 func NewRootCmd() *cobra.Command {
