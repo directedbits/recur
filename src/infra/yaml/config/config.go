@@ -79,6 +79,20 @@ func ConfigDir() (string, error) {
 	return dir, nil
 }
 
+// AppDir returns the directory where installed app bundles live
+// (~/.config/recur/app), creating it if needed.
+func AppDir() (string, error) {
+	dir, err := ConfigDir()
+	if err != nil {
+		return "", err
+	}
+	appDir := filepath.Join(dir, "app")
+	if err := os.MkdirAll(appDir, 0755); err != nil {
+		return "", fmt.Errorf("could not create app directory: %w", err)
+	}
+	return appDir, nil
+}
+
 // DefaultPath returns the default config file path (~/.config/recur/config.yaml).
 func DefaultPath() (string, error) {
 	dir, err := ConfigDir()

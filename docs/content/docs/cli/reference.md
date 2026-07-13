@@ -59,6 +59,23 @@ recur install https://example.com/plugin.tar.gz  # Download and install
 recur uninstall <id>                # Remove plugin
 ```
 
+## App Bundles
+
+```sh
+recur app install ./habits.recur         # Install a .recur bundle and register it
+recur app install ./habits.recur --name morning   # Install under a chosen name
+recur app install ./habits.recur --force # Overwrite an existing app, no prompt
+recur app install https://example.com/habits.recur  # Install from a URL
+recur app list                           # Installed apps and registration status
+recur app remove habits                  # Deregister and delete an app
+recur app pack ./habits                  # Build ./habits.recur from a directory
+recur app pack ./habits -o out.recur     # Choose the output path
+```
+
+Apps are unpacked into `~/.config/recur/app/<name>/`. Installing while the daemon
+is stopped still unpacks the app; it registers automatically on the next daemon
+start. URL installs require the host in `allowed_hosts` (see Settings).
+
 ## Settings
 
 ```sh

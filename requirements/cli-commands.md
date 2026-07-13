@@ -36,6 +36,12 @@ The full verb-noun command tree, derived from the daemon API:
 - `recur install <path>` — install a plugin from directory or archive
 - `recur uninstall <id>` — remove a plugin (errors if triggers/actions registered)
 
+**App bundle commands:**
+- `recur app install <bundle.recur|url>` — install a `.recur` app bundle and register its recurfile
+- `recur app list` — list installed apps and their registration status
+- `recur app remove <name>` — deregister and remove an installed app
+- `recur app pack <dir>` — create a `.recur` bundle from a directory
+
 **Config commands:**
 - `recur config get [key]` — show config value(s). No key = show all.
 - `recur config set <key> <value>` — set a config value (persisted immediately)
@@ -249,6 +255,42 @@ Remove a plugin from the plugin directory.
 **Behavior:**
 - Errors if any triggers or actions from the plugin are currently registered — user must deregister them first
 - On success: removes the plugin directory
+
+### `recur app install <bundle.recur|url>`
+
+Install a `.recur` app bundle (a zip of a recurfile plus its local scripts) into `~/.config/recur/app/<name>/` and register its recurfile.
+
+| Flag | Description |
+|---|---|
+| `--name <name>` | Install under this app name instead of the derived default. |
+| `--force` | Overwrite an existing app of the same name without prompting. |
+
+**Argument:** A local `.recur` path or an `http(s)` URL. URLs are downloaded first and their host must be permitted by `allowed_hosts` (same gate as `recur install`).
+
+**Name resolution:** `--name`, else the recurfile's filename stem, else (when that stem is the generic `recurfile`) the bundle's filename stem.
+
+**Behavior:**
+- Unpacks to a staging dir and validates before touching the destination, so a bad bundle never clobbers an installed app.
+- If the target app already exists: prompt to overwrite or abandon (`--force` skips the prompt; a non-interactive stdin abandons).
+- Daemon running: registers immediately. Daemon stopped: leaves the app unpacked and prints a hint — the [startup scan](daemon-lifecycle.md) registers it on next start. Install still succeeds.
+
+See [App Bundles](app-bundles.md) for the bundle format and recurfile-selection rules.
+
+### `recur app list`
+
+List installed apps. Each app shows a `registered` / `not registered` status when the daemon is running. Supports `--json`.
+
+### `recur app remove <name>`
+
+Best-effort deregister the app's recurfile (if the daemon is running), then remove `~/.config/recur/app/<name>/`. Proceeds even when the daemon is stopped.
+
+### `recur app pack <dir>`
+
+Create a `.recur` bundle from a directory. The directory must contain a root recurfile (a single YAML) or packing fails.
+
+| Flag | Description |
+|---|---|
+| `--output`, `-o` | Output bundle path (default: `<dir>.recur`). |
 
 ### `recur config get [key]`
 

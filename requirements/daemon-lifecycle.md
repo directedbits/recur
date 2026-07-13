@@ -7,6 +7,7 @@
 - Auto-start on login via system service for persistent automations
 - Single instance enforced via PID file at `~/.config/recur/run/recurd.pid`
 - On startup: configure logging level, read config, load state file, load plugin manifests, resume persisted triggers
+- After state replay, scan `~/.config/recur/app/` and register any [app bundle](app-bundles.md) not already registered (so apps installed while the daemon was stopped register themselves); registration is idempotent
 - The `recurd` binary accepts `--log-level` to override the config file's `log_level` at startup
 
 **Shutdown:**

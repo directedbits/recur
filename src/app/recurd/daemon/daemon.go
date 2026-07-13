@@ -179,6 +179,11 @@ func (d *Daemon) Run() error {
 		}
 	}
 
+	// Register apps installed under ~/.config/recur/app that aren't already
+	// registered (e.g. installed while the daemon was stopped). Runs after
+	// state replay so restored apps are skipped.
+	d.scanAppFolder()
+
 	if err := processos.WritePID(d.pidPath, os.Getpid()); err != nil {
 		return err
 	}
