@@ -35,6 +35,19 @@ func sameRecurfilePath(a, b string) bool {
 	return os.SameFile(aInfo, bInfo)
 }
 
+// hasRecurfilePath reports whether a recurfile with the given path is already
+// registered, comparing by physical file identity.
+func (r *registry) hasRecurfilePath(path string) bool {
+	r.mutex.RLock()
+	defer r.mutex.RUnlock()
+	for _, wf := range r.recurfiles {
+		if sameRecurfilePath(wf.FilePath, path) {
+			return true
+		}
+	}
+	return false
+}
+
 // registry holds all registered entities in memory.
 type registry struct {
 	mutex      sync.RWMutex
