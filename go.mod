@@ -1,12 +1,12 @@
 module github.com/directedbits/recur
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/helshabini/fsbroker v1.0.3
 	github.com/spf13/cobra v1.10.2
 	github.com/zalando/go-keyring v0.2.8
-	golang.org/x/sys v0.39.0
+	golang.org/x/sys v0.48.0
 	google.golang.org/grpc v1.79.3
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
